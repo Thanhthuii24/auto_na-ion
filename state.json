@@ -10,7 +10,7 @@
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
-  "next_experiment_id": "NA-E006",
+  "next_experiment_id": "NA-E007",
   "next_action": "Phase 1 own architectures (Relative Huber locked). NA-E003 = DualPhaseCoordConvAnchorTCN.",
   "active_architecture_parent": {
     "experiment": "NA-E003",
@@ -127,7 +127,14 @@
       "rmse": 18.271094
     }
   },
-  "active_candidates": [],
+  "active_candidates": [
+    {
+      "experiment": "NA-E006",
+      "model": "NaFadeNet+ExtrapGate",
+      "split2021_mape": 0.10527,
+      "status": "pending 42/2024"
+    }
+  ],
   "test_status": "unused",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
@@ -167,7 +174,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 6,
+      "experiments": 7,
       "training_seconds": 28
     },
     "remaining": {
@@ -260,7 +267,7 @@
   "directions": {
     "na_fade_net": {
       "status": "open",
-      "followups": 0,
+      "followups": 1,
       "note": "anchor-relative fade trajectory; ablations planned after confirmation"
     }
   }

@@ -1,0 +1,155 @@
+
+===== NA-E006 START 2026-11-07 17:48:30 =====
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=1.15s val_mape=0.154760 val_acc15=0.431667
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=1.34s val_mape=0.159857 val_acc15=0.358333
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.53s val_mape=0.142892 val_acc15=0.533333
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.72s val_mape=0.137688 val_acc15=0.538333
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=1.94s val_mape=0.124243 val_acc15=0.560000
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=2.14s val_mape=0.121624 val_acc15=0.650000
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.33s val_mape=0.105272 val_acc15=0.686667
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=2.52s val_mape=0.112102 val_acc15=0.685000
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=2.71s val_mape=0.119743 val_acc15=0.670000
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=2.90s val_mape=0.140736 val_acc15=0.611667
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=3.09s val_mape=0.152801 val_acc15=0.556667
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=3.28s val_mape=0.160207 val_acc15=0.528333
+{
+  "metrics": {
+    "mape": 0.10527210092094312,
+    "acc15": 0.6866666666666666,
+    "mae": 20.17342933654785,
+    "rmse": 24.046127582775767,
+    "prediction_diagnostics": {
+      "prediction_mean": 165.26596069335938,
+      "prediction_std": 12.627237319946289,
+      "prediction_min": 136.74435424804688,
+      "prediction_max": 198.7515411376953,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.6224981584505447,
+      "mean_signed_relative_error": -0.0941411554813385,
+      "relative_error_std": 0.0812145471572876,
+      "prediction_target_correlation": 0.658721117985127,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.11077621295483155,
+        "acc15": 0.7,
+        "mae": 19.5609380086263,
+        "rmse": 23.360645260432452,
+        "bias": -8.017461776733398,
+        "relative_bias": -0.0312768891453743,
+        "prediction_mean": 175.8158721923828,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.10053363085852585,
+        "acc15": 0.7777777777777778,
+        "mae": 19.225545925564237,
+        "rmse": 21.952686769842778,
+        "bias": -17.236526489257812,
+        "relative_bias": -0.08652645349502563,
+        "prediction_mean": 166.59681701660156,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.09692202139714327,
+        "acc15": 0.6666666666666666,
+        "mae": 18.846579284667968,
+        "rmse": 22.90635592069777,
+        "bias": -18.233171463012695,
+        "relative_bias": -0.09260226786136627,
+        "prediction_mean": 165.6001739501953,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.10086961575174659,
+        "acc15": 0.6666666666666666,
+        "mae": 19.616199544270835,
+        "rmse": 23.81038769874336,
+        "bias": -19.61619758605957,
+        "relative_bias": -0.10086961835622787,
+        "prediction_mean": 164.2171173095703,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.11866610283783452,
+        "acc15": 0.6666666666666666,
+        "mae": 22.87123575846354,
+        "rmse": 26.716832340978584,
+        "bias": -22.871232986450195,
+        "relative_bias": -0.11866611242294312,
+        "prediction_mean": 160.9621124267578,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.10527210092094312,
+        "acc15": 0.6866666666666666,
+        "mae": 20.17342933654785,
+        "rmse": 24.046127582775767,
+        "bias": -18.5673770904541,
+        "relative_bias": -0.0941411554813385,
+        "prediction_mean": 165.26596069335938,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.10527210092094312,
+        "acc15": 0.6866666666666666,
+        "mae": 20.17342933654785,
+        "rmse": 24.046127582775767,
+        "bias": -18.5673770904541,
+        "relative_bias": -0.0941411554813385,
+        "prediction_mean": 165.26596069335938,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "architecture",
+    "seed": 2021,
+    "training_compute_seconds": 3.284,
+    "validation_seconds": 2.307,
+    "wall_seconds": 13.72,
+    "num_steps": 180,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 54.805522,
+    "num_params": 39236,
+    "model_bytes_fp32": 156944,
+    "peak_device_memory_bytes": 804914688,
+    "best_epoch": 7,
+    "minimum_validation_mape": 0.10527210092094312,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 12,
+    "last_epoch": 12,
+    "last_epoch_steps": 15,
+    "epoch_progress": 12.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "NaFadeNet (unchanged) + gated extrapolation head: est = masked line fit on last 20 observed q_d (cycles), crossing 0.8, clamped [n+1, 600] (no gradient); g = sigmoid(MLP 4->16->1 on [n/100, est/100, 1000*slope, 100*resid]) with output bias init -2; z_ext = a*est/100 + c (learned, init a=2, c=-3.6); y = (1-g)*y_net + g*z_ext. +99 params.",
+    "device": "cuda"
+  }
+}
+===== NA-E006 COMPLETE =====

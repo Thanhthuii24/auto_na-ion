@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E006",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Can a learned prefix-dependent gate mix NaFadeNet with a masked fade-extrapolation estimate so that reliance on extrapolation rises with prefix length and improves split-2021 accuracy over NA-E003?",
+    "outcome": "REFUTED",
+    "conclusion": "Independent recomputation from all 600 saved predictions confirms MAPE 0.105272, RMSE 24.0461 cycles, and Acc@15 0.686667 versus NA-E003's 0.123409, 28.9664, and 0.641667. The exact configuration therefore passes its MAPE < 0.1234 screen rule. However, the defining learned-gating hypothesis is refuted: checkpoint evaluation gives mean g = 0.119412, 0.120110, 0.120184, 0.120240, and 0.120294 from prefix bands 01-10 through 76-100, while ext_scale=2.002089 and ext_shift=-3.601227 remain essentially at their 2.0/-3.6 initial values. The gain is from a near-constant approximately 12% extrapolation blend, not a gate that learns when extrapolation is reliable. Late-prefix MAPE improves, but remains 0.100870 and 0.118666 rather than the expected <0.10, and prediction/target spread compresses from 0.764757 to 0.622498.",
+    "evidence_paths": [
+      "record.json$.metrics",
+      "record.json$.metrics.by_prefix",
+      "record.json$.metrics.prediction_diagnostics",
+      "diagnostics.json$.summary.layer_health.gate",
+      "diagnostics.json$.summary.learning_dynamics",
+      "best_checkpoint.pt::state_dict.{gate.*,ext_scale,ext_shift}",
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}"
+    ]
+  },
+  "main_symptom": "NA-E006 improves split-2021 MAPE by 0.018137, RMSE by 4.9203 cycles, and Acc@15 by 0.045000, but the new gate does not express the hypothesized prefix dependence: band means stay within 0.000883 of one another around the sigmoid(-2) initialization. The result behaves as a fixed approximately 12% extrapolation residual, while aggregate prediction spread worsens from 0.764757 to 0.622498 and validation MAPE rises from its epoch-7 minimum 0.105272 to 0.160207 as train loss continues downward through epoch 12.",
+  "causes": [
+    {
+      "id": "constant_extrapolation_blend",
+      "class": "architecture/head",
+      "supporting_evidence": [
+        "best_checkpoint.pt::state_dict.{gate.*,ext_scale,ext_shift}",
+        "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+        "record.json$.metrics.by_prefix",
+        "record.json$.metrics.prediction_diagnostics"
+      ],
+      "contradicting_evidence": [
+        "The gate block is connected and updates: diagnostics.json$.summary.layer_health.gate reports HEALTHY with late grad/parameter ratio 0.002271 and late update ratio 0.000149.",
+        "Prefix 11-25 MAPE regresses by 0.007056, so a fixed blend is not uniformly helpful."
+      ],
+      "interpretation": "The most supported explanation for the screen gain is that injecting a small, nearly fixed extrapolation component corrects part of NaFadeNet's underprediction. Overall relative bias improves from -0.118619 to -0.094141, and the largest cell gains occur on 270040-4-2-47 (MAPE 0.237279 to 0.167063) and 270040-3-2-55 (0.208841 to 0.173254). The flat gate and near-initial extrapolation calibration show that this is not learned reliability selection.",
+      "missing_evidence": [
+        "A matched fixed-g=0.12 ablation to determine whether the 99-parameter gate contributes beyond the constant blend.",
+        "The same configuration and fixed-blend control on splits 42 and 2024."
+      ]
+    },
+    {
+      "id": "prefix_adaptive_gate_learning",
+      "class": "optimization/gating",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.layer_health.gate",
+        "record.json$.metrics.by_prefix",
+        "diagnostics.json$.summary.activation_health.gate_out"
+      ],
+      "contradicting_evidence": [
+        "Checkpoint gate means are 0.119412/0.120110/0.120184/0.120240/0.120294 across the five prefix bands, effectively unchanged from sigmoid(-2)=0.119203 rather than rising materially with prefix.",
+        "best_checkpoint.pt::state_dict.ext_scale is 2.002089 and ext_shift is -3.601227, essentially their 2.0 and -3.6 initial values.",
+        "The run has only 180 optimizer steps at the locked 5e-5 learning rate, limiting adaptation of the newly added head."
+      ],
+      "interpretation": "A genuinely learned reliability gate is not supported. Although gradients reach the block and late dead-gradient fraction is zero, its output remains almost constant. The locked learning rate and short 180-step trajectory plausibly leave the newly initialized output layer near initialization; the gate needs a matched repair or ablation before its adaptive interpretation can be claimed.",
+      "missing_evidence": [
+        "A matched repair that changes only gate parameterization or initialization while retaining the locked optimizer policy.",
+        "Saved per-sample gate values as a first-class run artifact rather than reviewer-side checkpoint evaluation."
+      ]
+    },
+    {
+      "id": "small_sample_checkpoint_overfitting",
+      "class": "generalization/learning-dynamics",
+      "supporting_evidence": [
+        "diagnostics.json$.epoch_history",
+        "diagnostics.json$.summary.learning_dynamics",
+        "record.json$.result"
+      ],
+      "contradicting_evidence": [
+        "The selected epoch-7 checkpoint improves MAPE, RMSE, and Acc@15 over NA-E003, so checkpoint restoration captures a useful state before deterioration.",
+        "diagnostics.json$.summary.overall_gradient_health is HEALTHY and padding invariance is exact, ruling out numerical failure or mask leakage."
+      ],
+      "interpretation": "The six-cell split is unstable after selection: while train loss falls from 0.017423 at epoch 7 to 0.012097 at epoch 12, validation MAPE rises by 0.054935. This does not invalidate the selected checkpoint, but it makes cross-split confirmation essential and cautions against attributing the one-split gain solely to the new mechanism.",
+      "missing_evidence": [
+        "Selected-checkpoint metrics and learning curves on splits 42 and 2024.",
+        "Three-split mean and sample standard deviation versus the NA-E003/004/005 parent configuration."
+      ]
+    }
+  ],
+  "selected_cause_id": "constant_extrapolation_blend",
+  "layers": [
+    {
+      "name": "curve_enc",
+      "role": "Encode each observed V/I/Q cycle into the learned per-cycle state inherited from NA-E003.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.curve_enc",
+        "diagnostics.json$.summary.activation_health.curve_conv_first",
+        "diagnostics.json$.summary.activation_health.curve_conv_last"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The inherited encoder is HEALTHY with late grad/parameter ratio 0.002124, update ratio 0.000365, zero near-zero-gradient fraction, and finite active outputs; the experiment provides no evidence for changing it."
+    },
+    {
+      "name": "state_proj",
+      "role": "Fuse anchor-relative learned states and explicit capacity-fade ratios into the temporal state width.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.state_proj",
+        "diagnostics.json$.summary.activation_health.state_proj"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The block is HEALTHY with late grad/parameter ratio 0.002277, update ratio 0.000366, no dead gradients, and fully active finite outputs."
+    },
+    {
+      "name": "tcn_and_tcn_norm",
+      "role": "Read the masked anchor-relative fade trajectory through the inherited causal residual temporal stack.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn",
+        "diagnostics.json$.summary.layer_health.tcn_norm",
+        "diagnostics.json$.summary.activation_health.tcn_first",
+        "diagnostics.json$.summary.activation_health.tcn_last",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Both blocks are connected and above dead/frozen thresholds; TCN late grad/parameter ratio is 0.002565, tcn_norm is 0.000103, both have nonzero updates and zero late near-zero-gradient fraction, and padding invariance is exact."
+    },
+    {
+      "name": "parent_head",
+      "role": "Produce the inherited NaFadeNet prediction before extrapolation blending.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.head",
+        "diagnostics.json$.summary.activation_health.head",
+        "diagnostics.json$.summary.activation_health.head_hidden"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The parent head is HEALTHY with late grad/parameter ratio 0.004069, update ratio 0.000351, zero dead-gradient fraction, and finite active outputs."
+    },
+    {
+      "name": "extrapolation_calibration",
+      "role": "Map the masked line-fit crossing estimate into standardized target space through ext_scale and ext_shift.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.ext_scale",
+        "diagnostics.json$.summary.layer_health.ext_shift",
+        "best_checkpoint.pt::state_dict.{ext_scale,ext_shift}",
+        "record.json$.metrics.by_prefix"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Both scalar parameters are connected and above frozen thresholds, and the combined screen improves materially. Their near-initial checkpoint values show that the useful result is approximately the proposed initial extrapolation mapping; cross-split confirmation is needed before changing it."
+    },
+    {
+      "name": "gate",
+      "role": "Choose per sample how much of the mapped extrapolation estimate to blend with the parent prediction.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.gate",
+        "diagnostics.json$.summary.activation_health.gate_out",
+        "best_checkpoint.pt::state_dict.gate.*",
+        "record.json$.metrics.by_prefix"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The block is connected but functionally remains at its approximately 0.12 initialization: prefix-band means span only 0.119412 to 0.120294 instead of rising materially with prefix. Preserve the candidate result, but do not claim adaptive gating; test a matched fixed-blend ablation or one gate-specific repair after cross-split confirmation."
+    }
+  ],
+  "gates": {
+    "gradient": "PASS",
+    "screen_floor": {
+      "applicable": true,
+      "pass": true,
+      "reason": "The run completed 12 epochs and 180 steps, overall gradient health is HEALTHY, first-to-last train-loss ratio is 0.504734, and recomputed selected-checkpoint MAPE 0.105272 is below the proposal's 0.1234 reject threshold and improves on NA-E003 by 0.018137."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "CONFIRM",
+    "summary": "Keep NA-E006 as a candidate because the split-2021 screen passes, then run the identical configuration on splits 42 and 2024 and compare the three-split mean plus sample standard deviation with NA-E003/004/005. Treat the mechanism as a near-constant 12% extrapolation blend; the learned gate remains a REPAIR item, with a fixed-g=0.12 matched ablation preferred if the cross-split gain holds.",
+    "source_cause_id": "constant_extrapolation_blend",
+    "responsible_block": "gate"
+  }
+}

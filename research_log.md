@@ -90,3 +90,13 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Diagnostic (non-learning, lead): linear extrapolation of the last 20 observed discharge capacities (q/nominal) to the
   EOL threshold 0.8 gives val MAPE 0.04–0.11 on prefixes 51–100 (NaFadeNet 0.13–0.20) but 2.5–4.7 on prefixes 1–10.
   The two estimates are complementary → next: gated extrapolation head (NA-E006).
+
+## NA-E006 — NaFadeNet + gated fade-extrapolation head, Split 2021 Screen
+
+- Head change only (+99 params); loss Relative Huber 0.15. Codex APPROVE.
+- VALID, KEEP as candidate: MAPE 0.1053 (parent 0.1234, CPMLP 0.1261), Acc@15 0.687, RMSE 24.0, bias -18.6, spread 0.62.
+  Prefix MAPE 0.111/0.101/0.097/0.101/0.119 (parent late 0.157). Worst cells 3-2-55 0.173, 4-2-47 0.167.
+- Lead diagnostic: the gate never left its init (g ≈ 0.12 in all prefix bands; a, c unchanged). With lr 5e-5 and ~180
+  steps the gate cannot adapt, so the gain is a near-constant 12% blend with the extrapolation. Hypothesis
+  'gate rises with prefix' refuted; the extrapolation signal itself helps.
+- Next: confirm on 42/2024, then repair the gate (reparameterise so it can learn under the locked optimizer).
