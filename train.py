@@ -74,6 +74,66 @@ class MLPBlock(nn.Module):
         return self.ln(self.dropout(self.out_linear(hidden)) + inputs)
 
 
+class NaFadeNet(nn.Module):
+    """v5 Na-ion model (NA-E003): anchor-relative fade-trajectory network, no CPMLP backbone.
+
+    curves [B,100,3,300], mask [B,100]
+    1. per-cycle CNN curve encoder -> h_k [B,100,C]
+    2. anchor-relative state: [h_k, h_k - h_1, r_d(k), r_c(k)], r = (q_k/q_1 - 1) * fade_scale
+       (q_d / q_c = max capacity of the discharge / charge half) -> Linear -> [B,100,D]
+    3. causal masked residual TCN over cycles (dilations), x mask after every block
+    4. masked mean + last observed + prefix fraction -> MLP head -> [B]
+    """
+
+    def __init__(self, curve_channels=32, d_model=48, dilations=(1, 2, 4, 8), dropout=0.1,
+                 fade_scale=10.0, use_anchor=True, use_fade=True):
+        super().__init__()
+        self.fade_scale, self.use_anchor, self.use_fade = fade_scale, use_anchor, use_fade
+        C, D = curve_channels, d_model
+        self.curve_enc = nn.Sequential(
+            nn.Conv1d(3, 16, 7, stride=2, padding=3), nn.GELU(),
+            nn.Conv1d(16, C, 5, stride=2, padding=2), nn.GELU(),
+            nn.AdaptiveAvgPool1d(1),
+        )
+        in_dim = C + (C if use_anchor else 0) + (2 if use_fade else 0)
+        self.state_proj = nn.Linear(in_dim, D)
+        self.tcn = nn.ModuleList([nn.Conv1d(D, D, 3, dilation=d) for d in dilations])
+        self.tcn_norm = nn.ModuleList([nn.LayerNorm(D) for _ in dilations])
+        self.drop = nn.Dropout(dropout)
+        self.head = nn.Sequential(nn.Linear(2 * D + 1, D), nn.GELU(), nn.Dropout(dropout), nn.Linear(D, 1))
+
+    def forward(self, curves, mask=None):
+        B, T = curves.shape[:2]
+        m = torch.ones(B, T, device=curves.device) if mask is None else mask.float()
+        h = self.curve_enc(curves.reshape(B * T, 3, -1)).reshape(B, T, -1)       # [B,T,C]
+        parts = [h]
+        if self.use_anchor:
+            parts.append(h - h[:, :1])                                          # cycle-1 anchor
+        if self.use_fade:
+            qd = curves[:, :, 2, 150:].amax(-1)
+            qc = curves[:, :, 2, :150].amax(-1)
+            rd = (qd / qd[:, :1].clamp_min(1e-3) - 1.0) * self.fade_scale
+            rc = (qc / qc[:, :1].clamp_min(1e-3) - 1.0) * self.fade_scale
+            parts.append(torch.stack([rd, rc], -1))
+        x = self.state_proj(torch.cat(parts, -1)) * m[..., None]               # [B,T,D], padded = 0
+        for conv, norm in zip(self.tcn, self.tcn_norm):
+            pad = (conv.kernel_size[0] - 1) * conv.dilation[0]
+            y = conv(F.pad(x.transpose(1, 2), (pad, 0))).transpose(1, 2)     # causal
+            x = (x + self.drop(F.gelu(norm(y)))) * m[..., None]                # per-position LN, masked
+        n = m.sum(1).clamp_min(1.0)
+        mean = x.sum(1) / n[:, None]
+        last = x.gather(1, (n - 1).long()[:, None, None].expand(-1, 1, x.size(-1))).squeeze(1)
+        return self.head(torch.cat([mean, last, (n / T)[:, None]], -1)).squeeze(-1)
+
+    def diagnostic_modules(self):
+        return {
+            "curve_conv_first": self.curve_enc[0], "curve_conv_last": self.curve_enc[2],
+            "state_proj": self.state_proj, "tcn_first": self.tcn[0],
+            "tcn_middle": self.tcn[len(self.tcn) // 2], "tcn_last": self.tcn[-1],
+            "head_hidden": self.head[0], "head": self.head[-1],
+        }
+
+
 class CPMLP(nn.Module):
     def __init__(self, d_model=32, d_ff=256, e_layers=12, d_layers=7, dropout=0.0):
         super().__init__()
@@ -4022,6 +4082,12 @@ def build_model(config):
         )
     if variant == "batterylife":
         return BatteryLifeModelWrapper(config["batterylife_model"], config["batterylife_config"])
+    if variant == "na_fade_net":
+        keys = ("curve_channels", "d_model", "dilations", "dropout", "fade_scale", "use_anchor", "use_fade")
+        kw = {k: config[k] for k in keys if k in config}
+        if "dilations" in kw:
+            kw["dilations"] = tuple(kw["dilations"])
+        return NaFadeNet(**kw)
     if variant == "cpmlp":
         # v5/v6: paper hyper-parameters per dataset come from the proposal (Selected_hyperparameters.md);
         # missing keys keep the Li-ion defaults, so old proposals build the same model.

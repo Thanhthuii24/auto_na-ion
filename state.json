@@ -3,15 +3,15 @@
   "workflow_version": "three-phase-relative-huber-v1",
   "research_mode": "model_search_no_physics",
   "phase": "phase1_model",
-  "phase_status": "baseline_pending",
-  "workflow_status": "proposal_ready",
+  "phase_status": "architecture_search_active",
+  "workflow_status": "running_remote",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": null,
-  "next_experiment_id": "NA-E002",
-  "next_action": "Wait for NA-E000 on Colab, then remote.py fetch NA-E000; then NA-E001 (split 42) and NA-E002 (split 2024)",
+  "current_experiment": "NA-E003",
+  "next_experiment_id": "NA-E003",
+  "next_action": "Phase 1 own architectures (Relative Huber locked). NA-E003 = DualPhaseCoordConvAnchorTCN.",
   "active_architecture_parent": null,
   "success_criteria": {
     "same_checkpoint_required": true,
@@ -19,8 +19,10 @@
     "validation_acc15_strictly_above": 0.68,
     "one_seed_is_preliminary_evidence_only": true,
     "final_candidate_requires_three_seed_mean": true,
-    "current_status": "baseline_pending",
-    "note": "target set after the CPMLP 3-split baseline"
+    "current_status": "baseline_frozen_targets_open",
+    "note": "target set after the CPMLP 3-split baseline",
+    "paper_cpmlp_naion_test_mape": 0.274,
+    "validation_reference_cpmlp_mape": 0.1778
   },
   "loss_lock": {
     "main_loss": "relative_huber",
@@ -50,7 +52,7 @@
     "conclusion_and_next_step_are_plain_language": true
   },
   "baseline": {
-    "status": "in_progress",
+    "status": "frozen",
     "model": "CPMLP",
     "required_splits": [
       "2021",
@@ -83,9 +85,32 @@
         "run_validity": "VALID",
         "decision": "KEEP",
         "device": "Colab A100"
+      },
+      {
+        "id": "NA-E002",
+        "split": "2024",
+        "seed": 2024,
+        "val_mape": 0.17369835498801833,
+        "val_acc15": 0.5183333333333333,
+        "best_epoch": 6,
+        "completed_epochs": 11,
+        "gradient_health": "HEALTHY",
+        "run_validity": "VALID",
+        "decision": "KEEP",
+        "device": "Colab A100"
       }
     ],
-    "report": "baseline_report.md"
+    "report": "baseline_report.md",
+    "mean": {
+      "val_mape": 0.177835,
+      "val_acc15": 0.499444,
+      "rmse": 41.441794
+    },
+    "sample_standard_deviation": {
+      "val_mape": 0.053942,
+      "val_acc15": 0.144264,
+      "rmse": 18.271094
+    }
   },
   "active_candidates": [],
   "test_status": "unused",
@@ -125,7 +150,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 2,
+      "experiments": 3,
       "training_seconds": 28
     },
     "remaining": {
@@ -171,6 +196,18 @@
       "date": "2026-11-08",
       "by": "user",
       "summary": "Epochs: max 100, min 5, patience 5 after epoch 5 (paper CPMLP.sh); the Li-ion 15-epoch cap does not apply."
+    },
+    {
+      "id": "A3-NA",
+      "date": "2026-11-08",
+      "by": "user",
+      "summary": "Target: Na-ion MAPE below the BatteryLife paper CPMLP Na-ion MAPE (0.274 ± 0.026, paper test, 3 splits). Final claim uses the 3-split test MAPE once at the end; during search, models must also beat our CPMLP val baseline 0.1778 ± 0.0539."
+    },
+    {
+      "id": "A4-NA",
+      "date": "2026-11-08",
+      "by": "user",
+      "summary": "No local reproduction of BatteryLife paper baselines (program.md 2b skipped): the paper's Na-ion numbers are the reference (CPMLP 0.274, CPTransformer 0.255 test MAPE). Go straight to own architectures; the local CPMLP 3-split run stays as the matched val reference."
     }
   ],
   "decision_metrics": {

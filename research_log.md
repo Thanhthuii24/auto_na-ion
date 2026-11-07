@@ -60,3 +60,10 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Per-cell MAPE: 1-6-59 0.055, 1-8-57 0.316, 5-3-37 0.402, 5-5-35 0.148, 5-8-32 0.368, 6-6-26 0.112.
 - Reading: +0.108 vs split 2021 — split 42's val cells span a wider EOL range and predictions are compressed
   toward the mean (under-prediction again). With 6 val cells per split, only the 3-split mean is meaningful.
+
+## NA-E002 — CPMLP Baseline, Split 2024 (Colab A100)
+
+- VALID, KEEP. Val MAPE 0.1737, Acc@15 0.518, RMSE 31.5; best epoch 6 of 11. Cell 5-2-38 MAPE 0.344.
+- **Frozen CPMLP baseline (3 splits): MAPE 0.1778 ± 0.0539, Acc@15 0.499 ± 0.144, RMSE 41.4 ± 18.3 cycles.**
+- Shared failure across splits: predictions compressed toward the train mean (negative bias), cells at the
+  EOL extremes carry most of the error. Next: paper baselines CPTransformer / CPGRU (program.md §2b).

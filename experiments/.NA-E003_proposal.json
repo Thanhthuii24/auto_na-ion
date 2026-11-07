@@ -1,0 +1,66 @@
+{
+  "id": "NA-E003",
+  "phase": "phase1_model",
+  "training_stage": "full_candidate",
+  "type": "architecture",
+  "model": {
+    "display_name": "NaFadeNet",
+    "variant": "na_fade_net",
+    "curve_channels": 32,
+    "d_model": 48,
+    "dilations": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "dropout": 0.1,
+    "fade_scale": 10.0,
+    "use_anchor": true,
+    "use_fade": true
+  },
+  "reference_experiment": "NA-E000",
+  "observation": "Frozen CPMLP baseline val MAPE 0.1778 \u00b1 0.0539. Na-ion data: the discharge-capacity ratio q(k)/q(1) correlates with log EOL at r = 0.39-0.56 (k=10), 0.76-0.84 (k=50), 0.83-0.88 (k=100) on all three splits, yet CPMLP error does not fall with longer prefixes (NA-E000: 0.102 at 26-50 vs 0.143 at 76-100; NA-E001 flat ~0.23) and its predictions are compressed (pred/target std 0.48-0.90). CPMLP only sees the fade through a fixed Linear over 100 x d_model slots, which mixes padded zeros and cannot read the trajectory shape.",
+  "primary_hypothesis": "A model that represents every cycle relative to the cell's own cycle 1 (learned curve-state difference h_k - h_1 plus capacity ratios q_k/q_1) and reads that trajectory with a causal masked TCN will use the dominant Na-ion life signal, so error falls as more cycles are observed and predictions spread toward the true EOL range, beating CPMLP.",
+  "question_inherited": "Does an anchor-relative fade-trajectory model (new family, no CPMLP backbone) beat CPMLP on Na-ion?",
+  "unresolved_from_reference": "CPMLP error does not decrease with more observed cycles; mean compression.",
+  "why_this_experiment": "User 2026-11-08: no CPMLP-based model, something new for Na-ion. Evidence: fade ratio correlates 0.83-0.88 with log EOL at cycle 100, but CPMLP error does not fall with prefix length and its predictions are compressed. New family = first test of a direction (A2); primary mechanism = anchor-relative fade-trajectory encoding; the CNN curve encoder, causal TCN and MLP head are standard neutral blocks. Attribution follows architecture.md \u00a75 Run C: if promising, ablations NA-E00x use_anchor=false and use_fade=false.",
+  "modification": "New variant na_fade_net (39,137 params): per-cycle CNN (3->16 k7 s2, 16->32 k5 s2, avg-pool) -> [h, h-h_1, r_d, r_c] -> Linear 66->48 -> 4 causal residual TCN blocks (k3, dilations 1/2/4/8, per-position LayerNorm, GELU, dropout 0.1, x mask) -> masked mean + last observed + prefix fraction -> MLP 97->48->1.",
+  "changed_components": "Whole model (new family) vs CPMLP reference.",
+  "held_constant_components": "Split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+  "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+  "expected_evidence": "Split-2021 val MAPE, RMSE, Acc@15 vs NA-E000; prefix-group MAPE trend; prediction spread; per-cell errors (3-2-55, 4-2-47).",
+  "rejection_condition": "Screen on split 2021: DISCARD if val MAPE > 0.1261 (NA-E000) or gradients UNHEALTHY. Otherwise confirm on splits 42 and 2024; KEEP as active parent if the 3-split mean beats CPMLP 0.1778 by >= 0.008.",
+  "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+  "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; CPMLP block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+  "estimated_budget": {
+    "experiments": 1,
+    "training_seconds": 300
+  },
+  "training": {
+    "seed": 2021,
+    "batch_size": 128,
+    "max_epochs": 100,
+    "minimum_epochs": 5,
+    "patience": 5,
+    "learning_rate": 5e-05,
+    "scheduler": "none",
+    "target_transform": "standard",
+    "main_loss": "relative_huber",
+    "relative_huber_delta": 0.15,
+    "checkpoint_mape_tolerance": 0.005,
+    "physics_loss_weight": 0.0,
+    "extra_loss_weight": 0.0,
+    "prefix_consistency_weight": 0.0,
+    "diagnostic_interval_steps": 50,
+    "required_device": "cuda"
+  },
+  "split": "2021",
+  "architecture_addendum": {
+    "responsible_stage": "Degradation Encoder (anchor-relative trajectory) \u2014 new model family",
+    "mechanism": "anchor-relative fade-trajectory encoding read by a causal masked TCN",
+    "shapes": "curves [B,100,3,300] -> per-cycle CNN on [B*100,3,300] -> h [B,100,32]; anchor h-h[:, :1] [B,100,32]; r_d, r_c [B,100] from capacity channel max of discharge (150:) / charge (:150) halves divided by cycle 1, minus 1, x10 -> concat [B,100,66] -> Linear [B,100,48] -> TCN x4 [B,100,48] -> mean [B,48], last [B,48], n/100 [B,1] -> [B,97] -> MLP -> [B]",
+    "mask_path": "per-cycle encoder is independent per cycle; its output is multiplied by mask before the TCN; TCN uses causal left padding and the output of every block is multiplied by mask; LayerNorm is per position (feature dim only, no statistics across cycles); pooled mean divides by mask.sum; last = index mask.sum()-1; cycle 1 is always observed (prefix >= 1). Unit test: changing padded cycles changes the output by 0.0.",
+    "expected_evidence": "vs NA-E000 split 2021 (MAPE 0.1261, RMSE 30.3, Acc@15 0.633; single domain so DB-MAPE = MAPE): lower MAPE and RMSE, higher Acc@15, prefix-group MAPE falling from 1-10 to 76-100, pred/target std closer to 1."
+  }
+}
