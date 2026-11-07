@@ -10,9 +10,24 @@
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
-  "next_experiment_id": "NA-E005",
+  "next_experiment_id": "NA-E006",
   "next_action": "Phase 1 own architectures (Relative Huber locked). NA-E003 = DualPhaseCoordConvAnchorTCN.",
-  "active_architecture_parent": null,
+  "active_architecture_parent": {
+    "experiment": "NA-E003",
+    "model": "NaFadeNet",
+    "runs": [
+      "NA-E003",
+      "NA-E004",
+      "NA-E005"
+    ],
+    "three_split": {
+      "mape": 0.169,
+      "mape_std": 0.042,
+      "acc15": 0.498,
+      "rmse": 40.3
+    },
+    "reason": "3-split MAPE gain 0.0089 over CPMLP (program.md 7)"
+  },
   "success_criteria": {
     "same_checkpoint_required": true,
     "validation_mape_strictly_below": null,
@@ -112,14 +127,7 @@
       "rmse": 18.271094
     }
   },
-  "active_candidates": [
-    {
-      "experiment": "NA-E003",
-      "model": "NaFadeNet",
-      "split2021_mape": 0.12340896883243062,
-      "status": "pending 42/2024 confirmation"
-    }
-  ],
+  "active_candidates": [],
   "test_status": "unused",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
@@ -129,8 +137,10 @@
     "hard_cap_valid_architecture_experiments": 50,
     "meaningful_mape_gain": 0.008,
     "meaningful_acc15_gain": 0.02,
-    "valid_architecture_experiments": 0,
-    "architecture_families_covered": [],
+    "valid_architecture_experiments": 3,
+    "architecture_families_covered": [
+      "anchor_relative_fade_trajectory_tcn"
+    ],
     "valid_runs_since_meaningful_gain": 0,
     "promotion_eligible_incomplete_runs": [],
     "meaningful_rmse_gain": 21
@@ -157,7 +167,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 5,
+      "experiments": 6,
       "training_seconds": 28
     },
     "remaining": {

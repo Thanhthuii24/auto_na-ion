@@ -1,0 +1,205 @@
+{
+  "proposal": {
+    "id": "NA-E005",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "architecture",
+    "model": {
+      "display_name": "NaFadeNet",
+      "variant": "na_fade_net",
+      "curve_channels": 32,
+      "d_model": 48,
+      "dilations": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "dropout": 0.1,
+      "fade_scale": 10.0,
+      "use_anchor": true,
+      "use_fade": true
+    },
+    "reference_experiment": "NA-E000",
+    "observation": "Frozen CPMLP baseline val MAPE 0.1778 \u00b1 0.0539. Na-ion data: the discharge-capacity ratio q(k)/q(1) correlates with log EOL at r = 0.39-0.56 (k=10), 0.76-0.84 (k=50), 0.83-0.88 (k=100) on all three splits, yet CPMLP error does not fall with longer prefixes (NA-E000: 0.102 at 26-50 vs 0.143 at 76-100; NA-E001 flat ~0.23) and its predictions are compressed (pred/target std 0.48-0.90). CPMLP only sees the fade through a fixed Linear over 100 x d_model slots, which mixes padded zeros and cannot read the trajectory shape.",
+    "primary_hypothesis": "A model that represents every cycle relative to the cell's own cycle 1 (learned curve-state difference h_k - h_1 plus capacity ratios q_k/q_1) and reads that trajectory with a causal masked TCN will use the dominant Na-ion life signal, so error falls as more cycles are observed and predictions spread toward the true EOL range, beating CPMLP.",
+    "question_inherited": "Does an anchor-relative fade-trajectory model (new family, no CPMLP backbone) beat CPMLP on Na-ion?",
+    "unresolved_from_reference": "CPMLP error does not decrease with more observed cycles; mean compression.",
+    "why_this_experiment": "Confirmation of NA-E003 (NaFadeNet, Codex APPROVE) on paper split 2024; only split and seed change.",
+    "modification": "New variant na_fade_net (39,137 params): per-cycle CNN (3->16 k7 s2, 16->32 k5 s2, avg-pool) -> [h, h-h_1, r_d, r_c] -> Linear 66->48 -> 4 causal residual TCN blocks (k3, dilations 1/2/4/8, per-position LayerNorm, GELU, dropout 0.1, x mask) -> masked mean + last observed + prefix fraction -> MLP 97->48->1.",
+    "changed_components": "Whole model (new family) vs CPMLP reference.",
+    "held_constant_components": "Split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+    "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "Split-2021 val MAPE, RMSE, Acc@15 vs NA-E000; prefix-group MAPE trend; prediction spread; per-cell errors (3-2-55, 4-2-47).",
+    "rejection_condition": "Confirmation run: report MAPE/RMSE/Acc@15 vs CPMLP on the same split; KEEP NaFadeNet as parent only if the 3-split mean beats CPMLP 0.1778 by >= 0.008.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; CPMLP block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 300
+    },
+    "training": {
+      "seed": 2024,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    },
+    "architecture_addendum": {
+      "responsible_stage": "Degradation Encoder (anchor-relative trajectory) \u2014 new model family",
+      "mechanism": "anchor-relative fade-trajectory encoding read by a causal masked TCN",
+      "shapes": "curves [B,100,3,300] -> per-cycle CNN on [B*100,3,300] -> h [B,100,32]; anchor h-h[:, :1] [B,100,32]; r_d, r_c [B,100] from capacity channel max of discharge (150:) / charge (:150) halves divided by cycle 1, minus 1, x10 -> concat [B,100,66] -> Linear [B,100,48] -> TCN x4 [B,100,48] -> mean [B,48], last [B,48], n/100 [B,1] -> [B,97] -> MLP -> [B]",
+      "mask_path": "per-cycle encoder is independent per cycle; its output is multiplied by mask before the TCN; TCN uses causal left padding and the output of every block is multiplied by mask; LayerNorm is per position (feature dim only, no statistics across cycles); pooled mean divides by mask.sum; last = index mask.sum()-1; cycle 1 is always observed (prefix >= 1). Unit test: changing padded cycles changes the output by 0.0.",
+      "expected_evidence": "vs NA-E000 split 2021 (MAPE 0.1261, RMSE 30.3, Acc@15 0.633; single domain so DB-MAPE = MAPE): lower MAPE and RMSE, higher Acc@15, prefix-group MAPE falling from 1-10 to 76-100, pred/target std closer to 1."
+    }
+  },
+  "metrics": {
+    "mape": 0.17719858707688244,
+    "acc15": 0.47,
+    "mae": 28.572553749084474,
+    "rmse": 33.996585084357086,
+    "prediction_diagnostics": {
+      "prediction_mean": 168.0957489013672,
+      "prediction_std": 46.59877014160156,
+      "prediction_min": 103.29315948486328,
+      "prediction_max": 242.91908264160156,
+      "target_mean": 169.8333282470703,
+      "target_std": 40.39148712158203,
+      "prediction_to_target_std_ratio": 1.153678001538667,
+      "mean_signed_relative_error": 0.0022921650670468807,
+      "relative_error_std": 0.21381135284900665,
+      "prediction_target_correlation": 0.7040107024502678,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.17637025693047545,
+        "acc15": 0.45,
+        "mae": 28.29197514851888,
+        "rmse": 31.160917614997558,
+        "bias": -3.0214993953704834,
+        "relative_bias": 0.01638799160718918,
+        "prediction_mean": 166.81185913085938,
+        "target_mean": 169.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.2013190849757232,
+        "acc15": 0.3888888888888889,
+        "mae": 30.199900478786894,
+        "rmse": 34.25284910514844,
+        "bias": 8.317663192749023,
+        "relative_bias": 0.07322483509778976,
+        "prediction_mean": 178.1510009765625,
+        "target_mean": 169.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.1984554072649353,
+        "acc15": 0.46,
+        "mae": 30.570621185302734,
+        "rmse": 35.73717355955303,
+        "bias": 9.748790740966797,
+        "relative_bias": 0.07233299314975739,
+        "prediction_mean": 179.5821075439453,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.1594312501276951,
+        "acc15": 0.44666666666666666,
+        "mae": 26.406131591796875,
+        "rmse": 32.85490689495675,
+        "bias": -3.3155627250671387,
+        "relative_bias": -0.015077120624482632,
+        "prediction_mean": 166.51776123046875,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.15956813715727525,
+        "acc15": 0.56,
+        "mae": 27.876731872558594,
+        "rmse": 34.265507303326494,
+        "bias": -17.165498733520508,
+        "relative_bias": -0.09857729822397232,
+        "prediction_mean": 152.66783142089844,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.17719858707688244,
+        "acc15": 0.47,
+        "mae": 28.572553749084474,
+        "rmse": 33.996585084357086,
+        "bias": -1.737568736076355,
+        "relative_bias": 0.0022921650670468807,
+        "prediction_mean": 168.0957489013672,
+        "target_mean": 169.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.17719858707688244,
+        "acc15": 0.47,
+        "mae": 28.572553749084474,
+        "rmse": 33.996585084357086,
+        "bias": -1.737568736076355,
+        "relative_bias": 0.0022921650670468807,
+        "prediction_mean": 168.0957489013672,
+        "target_mean": 169.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "architecture",
+    "seed": 2024,
+    "training_compute_seconds": 3.177,
+    "validation_seconds": 3.209,
+    "wall_seconds": 18.124,
+    "num_steps": 225,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 70.827765,
+    "num_params": 39137,
+    "model_bytes_fp32": 156548,
+    "peak_device_memory_bytes": 804896256,
+    "best_epoch": 13,
+    "minimum_validation_mape": 0.17655476028842443,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 15,
+    "last_epoch": 15,
+    "last_epoch_steps": 15,
+    "epoch_progress": 15.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "New variant na_fade_net (39,137 params): per-cycle CNN (3->16 k7 s2, 16->32 k5 s2, avg-pool) -> [h, h-h_1, r_d, r_c] -> Linear 66->48 -> 4 causal residual TCN blocks (k3, dilations 1/2/4/8, per-position LayerNorm, GELU, dropout 0.1, x mask) -> masked mean + last observed + prefix fraction -> MLP 97->48->1.",
+    "device": "cuda"
+  }
+}

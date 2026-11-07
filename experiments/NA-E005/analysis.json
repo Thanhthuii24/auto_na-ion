@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E005",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does the unchanged NaFadeNet confirmation on split 2024 complete a three-split result that beats CPMLP mean MAPE by at least 0.008 while improving prefix use and prediction spread?",
+    "outcome": "SUPPORTED",
+    "conclusion": "Independent recomputation from all 600 saved split-2024 predictions gives NaFadeNet MAPE 0.177199, Acc@15 0.470000, and RMSE 33.9966 cycles versus same-split CPMLP NA-E002 at 0.173698, 0.518333, and 31.5227. Thus this split alone regresses by 0.003500 MAPE, 0.048333 Acc@15, and 2.4738 RMSE. However, the completed NaFadeNet three-split result is MAPE 0.168952 +/- 0.042030, Acc@15 0.498333 +/- 0.131477, and RMSE 40.3402 +/- 15.5485 versus CPMLP 0.177835 +/- 0.053942, 0.499444 +/- 0.144264, and 41.4418 +/- 18.2711. The aggregate MAPE gain is 0.008884 with RMSE improving by 1.1016 cycles and Acc@15 changing by -0.001111, so program.md section 7 path A and the predeclared gain >= 0.008 promotion rule are met. Split-2024 prefix MAPE falls from 0.176370 at 1-10 cycles to 0.159568 at 76-100, and spread moves from CPMLP's compressed 0.805341 to 1.153678, closer to one, although late-prefix bias worsens and gains are not uniform across cells.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}",
+      "record.json$.metrics",
+      "record.json$.metrics.by_prefix",
+      "record.json$.metrics.prediction_diagnostics",
+      "experiments/NA-E002/validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}",
+      "experiments/NA-E002/record.json$.metrics",
+      "experiments/NA-E003/record.json$.metrics",
+      "experiments/NA-E004/record.json$.metrics"
+    ]
+  },
+  "main_symptom": "NaFadeNet meets the three-split MAPE promotion threshold despite a small split-2024 headline regression. On split 2024 it improves four CPMLP per-cell MAPEs but sharply regresses cells 270040-6-2-30 and 270040-7-1-23; its overall spread expands past the target spread to 1.153678, mean bias improves to -1.7376 from -3.1177 cycles, and 76-100-cycle bias worsens to -17.1655 from -12.4745 cycles.",
+  "causes": [
+    {
+      "id": "anchor_trajectory_cross_split_gain",
+      "class": "architecture/degradation-encoder",
+      "supporting_evidence": [
+        "experiments/NA-E003/record.json$.metrics",
+        "experiments/NA-E004/record.json$.metrics",
+        "record.json$.metrics",
+        "record.json$.metrics.by_prefix",
+        "record.json$.metrics.prediction_diagnostics",
+        "experiments/NA-E002/record.json$.metrics.prediction_diagnostics"
+      ],
+      "contradicting_evidence": [
+        "On split 2024, NaFadeNet MAPE is 0.003500 worse, Acc@15 is 0.048333 lower, and RMSE is 2.4738 cycles higher than same-split CPMLP.",
+        "NaFadeNet prediction/target spread overshoots one at 1.153678 rather than achieving calibrated spread.",
+        "The full-family comparison does not isolate anchor differences, explicit capacity ratios, or the causal TCN."
+      ],
+      "interpretation": "The anchor-relative trajectory family is the leading explanation for the robust aggregate gain: its mean MAPE improves by 0.008884 and its split-to-split MAPE standard deviation falls by 0.011911 while aggregate RMSE also improves. Split-2024 correlation rises from 0.649079 to 0.704011, prefix MAPE is lower than CPMLP in the first bin and nearly equal in 51-75, and four of six cell MAPEs improve. These observations support promotion of the whole configuration, not causal attribution to a particular internal feature.",
+      "missing_evidence": [
+        "Matched use_anchor=false and use_fade=false ablations on the promoted family.",
+        "Repeated fits within each fixed split to separate architecture effects from fit variance.",
+        "A final locked-test evaluation, which remains unavailable during model search."
+      ]
+    },
+    {
+      "id": "cell_specific_spread_overshoot",
+      "class": "data/generalization/calibration",
+      "supporting_evidence": [
+        "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+        "record.json$.metrics.prediction_diagnostics",
+        "record.json$.metrics.by_prefix",
+        "experiments/NA-E002/validation_predictions.npz::{prediction,target,cell_id,prefix_length}"
+      ],
+      "contradicting_evidence": [
+        "Overall split-2024 mean bias improves from -3.1177 to -1.7376 cycles.",
+        "Prediction-target correlation improves from 0.649079 to 0.704011.",
+        "NaFadeNet reduces MAPE for cells 270040-3-1-56, 270040-3-2-55, 270040-4-1-48, and 270040-5-2-38."
+      ],
+      "interpretation": "The remaining split-2024 error is a cell-specific calibration tradeoff rather than global mean collapse. NaFadeNet reduces cell 270040-5-2-38 MAPE from 0.343854 to 0.231372 and cell 270040-4-1-48 from 0.107859 to 0.047326, but cell 270040-6-2-30 rises from 0.181809 to 0.286176 and cell 270040-7-1-23 from 0.113843 to 0.229638. The expanded spread helps some extremes but overshoots for others, leaving late-prefix negative bias even though the aggregate three-split result improves.",
+      "missing_evidence": [
+        "Condition metadata or train-neighbor analysis for the two regressing split-2024 cells.",
+        "Per-cell trajectory-feature attribution showing why additional prefixes reverse signed bias.",
+        "A matched calibration-head ablation after promotion."
+      ]
+    },
+    {
+      "id": "weak_temporal_normalization_learning",
+      "class": "optimization/normalization",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.layer_health.tcn_norm",
+        "diagnostics.json$.summary.branch_gradient_imbalance",
+        "diagnostics.json$.samples"
+      ],
+      "contradicting_evidence": [
+        "diagnostics.json marks tcn_norm HEALTHY with finite gradients, zero near-zero-gradient fraction, and nonzero updates.",
+        "Overall gradient health is HEALTHY and branch imbalance remains below its warning threshold.",
+        "Padding invariance is exact and temporal activations are finite and non-collapsed."
+      ],
+      "interpretation": "The mandatory layer report classifies tcn_norm as WEAK because its late gradient/parameter ratio is about 2.19e-4, below five percent of the across-block median, while its late update ratio remains nonzero at about 5.79e-5. This is not a validity failure or a dead block, but program.md section 7 requires a non-OK block to receive a repair action. It is a secondary diagnostic target rather than the explanation for the demonstrated aggregate gain.",
+      "missing_evidence": [
+        "A matched normalization repair or removal ablation.",
+        "More than the sparse saved gradient samples needed to establish persistence across training.",
+        "Evidence that normalization weakness causally drives the two split-2024 cell regressions."
+      ]
+    }
+  ],
+  "selected_cause_id": "anchor_trajectory_cross_split_gain",
+  "layers": [
+    {
+      "name": "curve_enc",
+      "role": "Encode every observed V/I/Q cycle curve into a learned 32-dimensional state.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.curve_enc",
+        "diagnostics.json$.summary.activation_health.curve_conv_first",
+        "diagnostics.json$.summary.activation_health.curve_conv_last"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The encoder has finite connected gradients, zero near-zero-gradient fraction, nonzero updates, and fully active finite features. The promoted family gain supports retention."
+    },
+    {
+      "name": "state_proj",
+      "role": "Fuse cycle state, anchor difference, and explicit capacity ratios into the temporal state.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.state_proj",
+        "diagnostics.json$.summary.activation_health.state_proj"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The projection remains connected and active, with zero dead-gradient fraction and nonzero update ratio; no block-specific failure is measured."
+    },
+    {
+      "name": "tcn",
+      "role": "Read the masked anchor-relative sequence through four causal residual temporal blocks.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn",
+        "diagnostics.json$.summary.activation_health.tcn_first",
+        "diagnostics.json$.summary.activation_health.tcn_middle",
+        "diagnostics.json$.summary.activation_health.tcn_last",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The TCN has healthy finite gradients and updates, active non-collapsed features, and exact padding invariance. The cross-split gain supports retaining the temporal mechanism."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "Normalize features independently at each temporal position without pooling over padded cycles.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn_norm",
+        "diagnostics.json$.summary.branch_gradient_imbalance",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "Although diagnostics.json calls the block HEALTHY, the required layer report flags it WEAK: late gradient/parameter ratio is about 2.19e-4, under five percent of the block median. It is not dead or frozen, so a later matched normalization repair/removal ablation is appropriate; it does not invalidate promotion."
+    },
+    {
+      "name": "head",
+      "role": "Combine masked mean, last-observed state, and prefix fraction into standardized EOL.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.head",
+        "diagnostics.json$.summary.activation_health.head",
+        "diagnostics.json$.summary.activation_health.head_hidden",
+        "record.json$.metrics.prediction_diagnostics"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The head has the strongest connected gradient ratio, nonzero updates, and healthy activations. Calibration is imperfect but does not identify a disconnected or collapsed head."
+    }
+  ],
+  "gates": {
+    "gradient": "PASS",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "NA-E005 is a full-candidate confirmation rather than a screening run. It completed 15 epochs, all required outputs are finite, overall gradient health is HEALTHY, and the complete three-split MAPE gain is 0.008884."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "PROMOTE",
+    "summary": "Promote the three-split-confirmed NaFadeNet configuration: MAPE 0.168952 improves on CPMLP 0.177835 by 0.008884, satisfying program.md section 7 path A and the predeclared gain threshold. Preserve the configuration and treat the WEAK tcn_norm block plus cell-specific spread overshoot as evidence-led follow-up targets.",
+    "source_cause_id": "anchor_trajectory_cross_split_gain",
+    "responsible_block": "whole NaFadeNet configuration"
+  }
+}

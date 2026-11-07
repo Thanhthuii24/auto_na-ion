@@ -81,3 +81,12 @@ Raw experiment artifacts remain unchanged for reproducibility.
 
 - VALID, KEEP. MAPE 0.2062 (CPMLP 0.2337), RMSE 58.1 (62.5), bias -28.7, spread 0.47; best epoch 8 of 13.
 - Prefix MAPE 0.257/0.220/0.204/0.186/0.199: here error does fall with observed cycles. Worst cells 5-3-37 0.350, 1-8-57 0.317.
+
+## NA-E005 — NaFadeNet, Split 2024 Confirmation; parent promotion
+
+- VALID, KEEP. MAPE 0.1772 (CPMLP 0.1737), RMSE 34.0 (31.5), spread 1.15, bias -1.7. tcn_norm WEAK (REPAIR note).
+- **NaFadeNet 3-split: MAPE 0.1690 ± 0.0420, Acc@15 0.498 ± 0.131, RMSE 40.3 ± 15.5 vs CPMLP 0.1778 ± 0.0539 / 0.499 / 41.4.**
+  Gain 0.0089 >= 0.008 → NaFadeNet becomes the active parent.
+- Diagnostic (non-learning, lead): linear extrapolation of the last 20 observed discharge capacities (q/nominal) to the
+  EOL threshold 0.8 gives val MAPE 0.04–0.11 on prefixes 51–100 (NaFadeNet 0.13–0.20) but 2.5–4.7 on prefixes 1–10.
+  The two estimates are complementary → next: gated extrapolation head (NA-E006).
