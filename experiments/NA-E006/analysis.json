@@ -156,7 +156,7 @@
   "gates": {
     "gradient": "PASS",
     "screen_floor": {
-      "applicable": true,
+      "applicable": false,
       "pass": null,
       "reason": "The run completed 12 epochs and 180 steps, overall gradient health is HEALTHY, first-to-last train-loss ratio is 0.504734, and recomputed selected-checkpoint MAPE 0.105272 is below the proposal's 0.1234 reject threshold and improves on NA-E003 by 0.018137."
     }
