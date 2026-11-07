@@ -100,3 +100,8 @@ Raw experiment artifacts remain unchanged for reproducibility.
   steps the gate cannot adapt, so the gain is a near-constant 12% blend with the extrapolation. Hypothesis
   'gate rises with prefix' refuted; the extrapolation signal itself helps.
 - Next: confirm on 42/2024, then repair the gate (reparameterise so it can learn under the locked optimizer).
+
+## NA-E007 — NaFadeNet + ExtrapGate, Split 42 Confirmation
+
+- VALID, KEEP. MAPE 0.1819 (parent 0.2062), Acc@15 0.450 (0.383), RMSE 52.3 (58.1), bias -25.9, spread 0.48.
+- Prefix MAPE 0.236/0.201/0.185/0.162/0.165 — every band better than the parent. Worst cells 1-8-57 0.306, 5-3-37 0.281.
