@@ -20,7 +20,7 @@ dev/
 # Results file 
 results.tsv
 *.log
-!experiments/R4-E*/train.log
+!experiments/NA-E*/train.log
 
 # Agent call logs (large)
 handoff/log/*.jsonl
