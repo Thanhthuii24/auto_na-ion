@@ -86,9 +86,12 @@ class NaFadeNet(nn.Module):
     """
 
     def __init__(self, curve_channels=32, d_model=48, dilations=(1, 2, 4, 8), dropout=0.1,
-                 fade_scale=10.0, use_anchor=True, use_fade=True):
+                 fade_scale=10.0, use_anchor=True, use_fade=True, extrap_gate=False,
+                 extrap_window=20, extrap_threshold=0.8, extrap_cap=600.0):
         super().__init__()
         self.fade_scale, self.use_anchor, self.use_fade = fade_scale, use_anchor, use_fade
+        self.extrap_gate, self.extrap_window = extrap_gate, extrap_window
+        self.extrap_threshold, self.extrap_cap = extrap_threshold, extrap_cap
         C, D = curve_channels, d_model
         self.curve_enc = nn.Sequential(
             nn.Conv1d(3, 16, 7, stride=2, padding=3), nn.GELU(),
@@ -101,6 +104,32 @@ class NaFadeNet(nn.Module):
         self.tcn_norm = nn.ModuleList([nn.LayerNorm(D) for _ in dilations])
         self.drop = nn.Dropout(dropout)
         self.head = nn.Sequential(nn.Linear(2 * D + 1, D), nn.GELU(), nn.Dropout(dropout), nn.Linear(D, 1))
+        if extrap_gate:
+            # NA-E006: gate between the network output and a parameter-free fade extrapolation
+            self.gate = nn.Sequential(nn.Linear(4, 16), nn.GELU(), nn.Linear(16, 1))
+            nn.init.zeros_(self.gate[2].weight)
+            nn.init.constant_(self.gate[2].bias, -2.0)       # starts mostly on the network (g ~ 0.12)
+            self.ext_scale = nn.Parameter(torch.tensor(2.0))  # z_ext = a * est/100 + c (learned map to target space)
+            self.ext_shift = nn.Parameter(torch.tensor(-3.6))
+
+    def _extrapolate(self, q, m):
+        """Masked least-squares line on the last `extrap_window` observed cycles of q (capacity / nominal),
+        crossing at extrap_threshold. Returns est [B] (clamped to [n+1, cap]), slope [B], residual std [B]."""
+        B, T = q.shape
+        t = torch.arange(1, T + 1, device=q.device, dtype=q.dtype)[None]
+        n = m.sum(1, keepdim=True)
+        w = m * (t > n - self.extrap_window).to(q.dtype)
+        sw = w.sum(1, keepdim=True).clamp_min(1.0)
+        mt, mq = (w * t).sum(1, keepdim=True) / sw, (w * q).sum(1, keepdim=True) / sw
+        var = (w * (t - mt) ** 2).sum(1, keepdim=True)
+        slope = (w * (t - mt) * (q - mq)).sum(1, keepdim=True) / var.clamp_min(1e-6)
+        inter = mq - slope * mt
+        resid = ((w * (q - inter - slope * t) ** 2).sum(1, keepdim=True) / sw).sqrt()
+        ok = (slope < 0) & (n >= 3)
+        est = torch.where(ok, (self.extrap_threshold - inter) / slope.clamp(max=-1e-8),
+                          torch.full_like(n, self.extrap_cap))
+        est = torch.maximum(torch.minimum(est, torch.full_like(n, self.extrap_cap)), n + 1)
+        return est.squeeze(1), slope.squeeze(1), resid.squeeze(1)
 
     def forward(self, curves, mask=None):
         B, T = curves.shape[:2]
@@ -123,10 +152,20 @@ class NaFadeNet(nn.Module):
         n = m.sum(1).clamp_min(1.0)
         mean = x.sum(1) / n[:, None]
         last = x.gather(1, (n - 1).long()[:, None, None].expand(-1, 1, x.size(-1))).squeeze(1)
-        return self.head(torch.cat([mean, last, (n / T)[:, None]], -1)).squeeze(-1)
+        out = self.head(torch.cat([mean, last, (n / T)[:, None]], -1)).squeeze(-1)
+        if not self.extrap_gate:
+            return out
+        with torch.no_grad():
+            est, slope, resid = self._extrapolate(curves[:, :, 2, 150:].amax(-1) * m, m)
+            feats = torch.stack([n / T, est / 100.0, (slope * 1000.0).clamp(-10, 10), (resid * 100.0).clamp(0, 10)], -1)
+        g = torch.sigmoid(self.gate(feats)).squeeze(-1)
+        z_ext = self.ext_scale * est / 100.0 + self.ext_shift
+        return (1 - g) * out + g * z_ext
 
     def diagnostic_modules(self):
+        extra = {"gate_out": self.gate[2]} if self.extrap_gate else {}
         return {
+            **extra,
             "curve_conv_first": self.curve_enc[0], "curve_conv_last": self.curve_enc[2],
             "state_proj": self.state_proj, "tcn_first": self.tcn[0],
             "tcn_middle": self.tcn[len(self.tcn) // 2], "tcn_last": self.tcn[-1],
@@ -4083,7 +4122,8 @@ def build_model(config):
     if variant == "batterylife":
         return BatteryLifeModelWrapper(config["batterylife_model"], config["batterylife_config"])
     if variant == "na_fade_net":
-        keys = ("curve_channels", "d_model", "dilations", "dropout", "fade_scale", "use_anchor", "use_fade")
+        keys = ("curve_channels", "d_model", "dilations", "dropout", "fade_scale", "use_anchor", "use_fade",
+                "extrap_gate", "extrap_window", "extrap_threshold", "extrap_cap")
         kw = {k: config[k] for k in keys if k in config}
         if "dilations" in kw:
             kw["dilations"] = tuple(kw["dilations"])
