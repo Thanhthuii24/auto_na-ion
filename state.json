@@ -4,13 +4,13 @@
   "research_mode": "model_search_no_physics",
   "phase": "phase1_model",
   "phase_status": "baseline_pending",
-  "workflow_status": "running_remote",
+  "workflow_status": "proposal_ready",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": "NA-E000",
-  "next_experiment_id": "NA-E000",
+  "current_experiment": null,
+  "next_experiment_id": "NA-E001",
   "next_action": "Wait for NA-E000 on Colab, then remote.py fetch NA-E000; then NA-E001 (split 42) and NA-E002 (split 2024)",
   "active_architecture_parent": null,
   "success_criteria": {
@@ -50,14 +50,28 @@
     "conclusion_and_next_step_are_plain_language": true
   },
   "baseline": {
-    "status": "pending",
+    "status": "in_progress",
     "model": "CPMLP",
     "required_splits": [
       "2021",
       "42",
       "2024"
     ],
-    "runs": [],
+    "runs": [
+      {
+        "id": "NA-E000",
+        "split": "2021",
+        "seed": 2021,
+        "val_mape": 0.12608113261209666,
+        "val_acc15": 0.6333333333333333,
+        "best_epoch": 8,
+        "completed_epochs": 13,
+        "gradient_health": "HEALTHY",
+        "run_validity": "VALID",
+        "decision": "KEEP",
+        "device": "Colab A100"
+      }
+    ],
     "report": "baseline_report.md"
   },
   "active_candidates": [],
@@ -98,8 +112,8 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 0,
-      "training_seconds": 0.0
+      "experiments": 1,
+      "training_seconds": 28
     },
     "remaining": {
       "experiments": 150,

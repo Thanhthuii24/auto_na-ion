@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E000",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "What is the valid CPMLP baseline for Na-ion split 2021 under the v5 locked workflow?",
+    "outcome": "SUPPORTED",
+    "conclusion": "CPMLP produced a finite, protocol-compliant split-2021 baseline from the selected epoch-8 checkpoint. Independent recomputation from 600 saved prefix predictions over 6 validation cells gives MAPE 0.126081, Acc@15 0.633333, MAE 24.1698 cycles, and RMSE 30.2755 cycles. Per-cell MAPE/Acc@15 are: 270040-1-6-59 0.094240/0.82; 270040-3-2-55 0.216369/0.00; 270040-3-4-53 0.089252/0.98; 270040-4-2-47 0.260831/0.00; 270040-4-6-43 0.052251/1.00; 270040-5-5-35 0.043543/1.00.",
+    "evidence_paths": [
+      "record.json$.proposal",
+      "record.json$.result",
+      "record.json$.metrics",
+      "diagnostics.json$.summary",
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}"
+    ]
+  },
+  "main_symptom": "The baseline is accurate overall but its errors are concentrated in two of six validation cells: 270040-3-2-55 and 270040-4-2-47 have MAPE 0.216369 and 0.260831 with zero Acc@15, producing an aggregate signed bias of -21.40 cycles despite the other four cells having MAPE at or below 0.094240.",
+  "causes": [
+    {
+      "id": "cell_specific_generalization",
+      "class": "data/generalization",
+      "supporting_evidence": [
+        "validation_predictions.npz::{prediction,target,cell_id,absolute_relative_error}",
+        "record.json$.metrics.prediction_diagnostics.mean_signed_relative_error",
+        "record.json$.metrics.by_domain.NA-ion"
+      ],
+      "contradicting_evidence": [
+        "Cell 270040-1-6-59 has a similarly high target of 201 cycles but only 0.094240 MAPE, so target magnitude alone does not explain the two failures.",
+        "All six validation cells belong to the same recorded NA-ion domain, so the evidence does not isolate a domain shift."
+      ],
+      "interpretation": "The aggregate error is not shared uniformly: four cells have MAPE 0.043543-0.094240, whereas two cells contribute MAPE 0.216369 and 0.260831 and are underpredicted by 43.27 and 51.12 cycles on average. On this six-cell split, unresolved cell-condition variation is the strongest observed limitation.",
+      "missing_evidence": [
+        "Matched per-cell condition metadata and nearest training-cell comparisons.",
+        "The split-42 and split-2024 repetitions needed to determine whether the same cell pattern persists."
+      ]
+    },
+    {
+      "id": "prefix_representation_sensitivity",
+      "class": "architecture/mask-path",
+      "supporting_evidence": [
+        "record.json$.metrics.by_prefix",
+        "diagnostics.json$.summary.padding_invariance",
+        "validation_predictions.npz::{prediction,cell_id,prefix_length}"
+      ],
+      "contradicting_evidence": [
+        "diagnostics.json$.summary.mask_health",
+        "Prefix-bin MAPE is best at cycles 26-50 (0.101571), so prefix dependence is non-monotonic rather than a uniform failure on short histories.",
+        "Cached padding is exactly zero and the diagnostic explicitly says sensitivity does not imply future-cycle leakage."
+      ],
+      "interpretation": "MAPE rises from 0.101571 at prefixes 26-50 to 0.143493 at 76-100, and standardized output changes by up to 0.140324 when padding is perturbed. This makes CPMLP's zero-filled flattening path a plausible contributor to late-prefix instability, but it is not a correctness fault.",
+      "missing_evidence": [
+        "A matched architecture ablation that aggregates only observed cycles.",
+        "Per-cell prefix curves across the two remaining paper splits."
+      ]
+    },
+    {
+      "id": "optimization_or_output_compression",
+      "class": "optimization/representation",
+      "supporting_evidence": [
+        "record.json$.metrics.prediction_diagnostics",
+        "diagnostics.json$.summary.learning_dynamics"
+      ],
+      "contradicting_evidence": [
+        "diagnostics.json$.summary.overall_gradient_health",
+        "diagnostics.json$.summary.activation_health",
+        "diagnostics.json$.summary.branch_gradient_imbalance",
+        "Training loss fell to 0.389052 of its first-epoch value and the selected checkpoint reached MAPE 0.126081."
+      ],
+      "interpretation": "Predictions show negative mean relative bias (-0.109107), only 0.384120 correlation with targets, and a prediction-to-target standard-deviation ratio of 0.895771. However, connected finite gradients, healthy activations, and substantial loss reduction argue against a dead or numerically failed block; any output compression is more likely statistical than an optimization fault.",
+      "missing_evidence": [
+        "Train-set cell-balanced prediction bias at the selected checkpoint.",
+        "Repeated-seed evidence separating sampling variance from representational underfit."
+      ]
+    }
+  ],
+  "selected_cause_id": "cell_specific_generalization",
+  "layers": [
+    {
+      "name": "intra_embed",
+      "role": "Embed each cycle's sampled V/I/Q curve before intra-cycle mixing.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.intra_embed",
+        "diagnostics.json$.summary.activation_health.intra_embed"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Late gradient-to-parameter ratio is 0.003180, late update ratio is 0.000580, near-zero gradient fraction is 0.002220, and activations are finite and non-collapsed."
+    },
+    {
+      "name": "intra_mlp.0",
+      "role": "Perform the CPMLP intra-cycle residual mixing block.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.intra_mlp.0",
+        "diagnostics.json$.summary.activation_health.intra_mlp_first"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The block remains connected with late gradient-to-parameter ratio 0.000295 and update ratio 0.0000817; its activation features remain fully active."
+    },
+    {
+      "name": "inter_flatten",
+      "role": "Flatten the masked cycle representations for inter-cycle prediction.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.inter_flatten",
+        "diagnostics.json$.summary.activation_health.inter_flatten",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "This path has strong finite gradients and updates with no dead units. Padding sensitivity is a limitation to test in a future matched architecture, not evidence that this valid baseline block is broken."
+    },
+    {
+      "name": "inter_mlp.0",
+      "role": "Represent the nine-block inter-cycle MLP stack used by CPMLP.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.inter_mlp.0",
+        "diagnostics.json$.summary.layer_health.inter_mlp.8",
+        "diagnostics.json$.summary.activation_health.inter_mlp_first",
+        "diagnostics.json$.summary.activation_health.inter_mlp_last"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The first and last inter-cycle blocks have finite late gradient-to-parameter ratios of 0.000350 and 0.000592, updates above the frozen threshold, and non-collapsed activations; no gradient-driven repair is justified."
+    },
+    {
+      "name": "head",
+      "role": "Map the final CPMLP representation to standardized EOL prediction.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.head",
+        "diagnostics.json$.summary.activation_health.head",
+        "record.json$.metrics.prediction_diagnostics"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The head remains connected and active with finite gradients, late update ratio 0.000102, and no activation collapse; systematic bias is evidence for later comparison, not a validity failure."
+    }
+  ],
+  "gates": {
+    "gradient": "PASS",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "NA-E000 is a full-candidate baseline with no reference experiment, so the matched-reference screening floor is not applicable."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "CONFIRM",
+    "summary": "Retain NA-E000 as the valid split-2021 CPMLP baseline and run the identical approved baseline on paper splits 42 and 2024 before reporting the required three-split mean and standard deviation.",
+    "source_cause_id": "cell_specific_generalization",
+    "responsible_block": null
+  }
+}

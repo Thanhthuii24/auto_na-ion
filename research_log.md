@@ -42,3 +42,13 @@ entry, a final result row, and a matching `state.json` update.
 
 The active Round 4 log uses the simplified Run/Decision schema throughout.
 Raw experiment artifacts remain unchanged for reproducibility.
+
+## NA-E000 — CPMLP Baseline, Split 2021 (Colab A100)
+
+- Config: paper Na-ion CPMLP (d_model 64, d_ff 32, e_layers 1, d_layers 9), 510,593 params; Relative Huber 0.15,
+  Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5 (A2-NA). Codex APPROVE after the A2-NA amendment.
+- Result: VALID, KEEP. Val MAPE 0.1261, Acc@15 0.633, MAE 24.2, RMSE 30.3 cycles, bias −21.4 cycles; best epoch 8 of 13.
+- Per-cell MAPE: 1-6-59 0.094, 3-2-55 0.216, 3-4-53 0.089, 4-2-47 0.261, 4-6-43 0.052, 5-5-35 0.044.
+- Reading: two cells hold most of the error and the model under-predicts on average. Val MAPE is not
+  comparable with the paper's CPMLP test MAPE 0.274 ± 0.026 (different partition, 3-split mean).
+- Next: NA-E001 (split 42), NA-E002 (split 2024) with the same config.

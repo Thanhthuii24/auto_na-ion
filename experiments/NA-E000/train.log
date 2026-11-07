@@ -1,0 +1,156 @@
+
+===== NA-E000 START 2026-11-07 17:06:09 =====
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=1.23s val_mape=0.164944 val_acc15=0.473333
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=1.36s val_mape=0.179339 val_acc15=0.283333
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.49s val_mape=0.176628 val_acc15=0.323333
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.62s val_mape=0.172898 val_acc15=0.361667
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=1.79s val_mape=0.150679 val_acc15=0.456667
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=1.92s val_mape=0.137492 val_acc15=0.526667
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.05s val_mape=0.136720 val_acc15=0.536667
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=2.19s val_mape=0.126081 val_acc15=0.633333
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=2.32s val_mape=0.151399 val_acc15=0.533333
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=2.46s val_mape=0.153069 val_acc15=0.518333
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=2.59s val_mape=0.168736 val_acc15=0.371667
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=2.72s val_mape=0.167287 val_acc15=0.381667
+epoch=13 epoch_steps=15/15 epoch_progress=13.000 steps=195 train_compute=2.85s val_mape=0.160102 val_acc15=0.468333
+{
+  "metrics": {
+    "mape": 0.12608113261209666,
+    "acc15": 0.6333333333333333,
+    "mae": 24.16980234781901,
+    "rmse": 30.27550055593017,
+    "prediction_diagnostics": {
+      "prediction_mean": 162.42942810058594,
+      "prediction_std": 18.170509338378906,
+      "prediction_min": 129.6599578857422,
+      "prediction_max": 192.2340087890625,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.8957706515408556,
+      "mean_signed_relative_error": -0.10910667479038239,
+      "relative_error_std": 0.10970448702573776,
+      "prediction_target_correlation": 0.3841196370497518,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.1475447560341942,
+        "acc15": 0.5,
+        "mae": 27.828922526041666,
+        "rmse": 29.911331354415022,
+        "bias": -23.13371467590332,
+        "relative_bias": -0.1144799217581749,
+        "prediction_mean": 160.69961547851562,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.12247584248462015,
+        "acc15": 0.5777777777777777,
+        "mae": 23.408761257595486,
+        "rmse": 26.973915297548643,
+        "bias": -20.563201904296875,
+        "relative_bias": -0.10243669152259827,
+        "prediction_mean": 163.27012634277344,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.10157146665033945,
+        "acc15": 0.6666666666666666,
+        "mae": 19.699935607910156,
+        "rmse": 25.50327410662696,
+        "bias": -17.438634872436523,
+        "relative_bias": -0.08790546655654907,
+        "prediction_mean": 166.39468383789062,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.1267565891481416,
+        "acc15": 0.6666666666666666,
+        "mae": 24.349574076334637,
+        "rmse": 31.402251951295295,
+        "bias": -22.049501419067383,
+        "relative_bias": -0.11397840082645416,
+        "prediction_mean": 161.78382873535156,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.1434930667454558,
+        "acc15": 0.6533333333333333,
+        "mae": 27.45287394205729,
+        "rmse": 35.14932370093472,
+        "bias": -24.536115646362305,
+        "relative_bias": -0.1272888481616974,
+        "prediction_mean": 159.29721069335938,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.12608113261209666,
+        "acc15": 0.6333333333333333,
+        "mae": 24.16980234781901,
+        "rmse": 30.27550055593017,
+        "bias": -21.403913497924805,
+        "relative_bias": -0.10910667479038239,
+        "prediction_mean": 162.42942810058594,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.12608113261209666,
+        "acc15": 0.6333333333333333,
+        "mae": 24.16980234781901,
+        "rmse": 30.27550055593017,
+        "bias": -21.403913497924805,
+        "relative_bias": -0.10910667479038239,
+        "prediction_mean": 162.42942810058594,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "baseline",
+    "seed": 2021,
+    "training_compute_seconds": 2.851,
+    "validation_seconds": 3.018,
+    "wall_seconds": 22.254,
+    "num_steps": 195,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 68.401648,
+    "num_params": 510593,
+    "model_bytes_fp32": 2042372,
+    "peak_device_memory_bytes": 357958656,
+    "best_epoch": 8,
+    "minimum_validation_mape": 0.12608113261209666,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 13,
+    "last_epoch": 13,
+    "last_epoch_steps": 15,
+    "epoch_progress": 13.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "CPMLP (d_model 64, d_ff 32, e_layers 1, d_layers 9, dropout 0; paper Na-ion row) on BL_SPLIT=2021, Relative Huber delta 0.15, Adam lr 5e-5, batch 128 (paper 64 x 2 GPUs), up to 100 epochs with patience 5 (paper CPMLP.sh). Runs on Colab CUDA.",
+    "device": "cuda"
+  }
+}
+===== NA-E000 COMPLETE =====
