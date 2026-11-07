@@ -13,6 +13,9 @@ Status: **LOCKED FOR v5_auto ROUND 1** (created 2026-11-07, user-approved projec
   Adam lr 5e-05, batch 128. Paper CPMLP: d_model 64, d_ff 32, e_layers 1, d_layers 9, dropout 0.
 - Reporting: every result is the mean ± std over the 3 splits (as in the paper).
   Screens may use split 2021 alone, but KEEP needs all 3 splits.
+- **Amendment A2-NA (user, 2026-11-08): epochs.** One epoch here is only 15–47 optimizer steps, so the
+  Li-ion limit of 15 epochs below does NOT apply. Every run uses max 100 epochs, minimum 5 and patience 5
+  after epoch 5 (paper `CPMLP.sh`: train_epochs=100, patience=5). Checkpoint rule unchanged.
 - Experiment IDs: `NA-E###`. Test split: locked until the user opens it.
 - The Li-ion sections below (domains, MIX_large counts, ISU-ILCC, A-amendments that
   name R4 runs) are workflow reference only.

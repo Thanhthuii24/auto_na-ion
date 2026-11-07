@@ -4023,7 +4023,9 @@ def build_model(config):
     if variant == "batterylife":
         return BatteryLifeModelWrapper(config["batterylife_model"], config["batterylife_config"])
     if variant == "cpmlp":
-        return CPMLP()
+        # v5/v6: paper hyper-parameters per dataset come from the proposal (Selected_hyperparameters.md);
+        # missing keys keep the Li-ion defaults, so old proposals build the same model.
+        return CPMLP(**{k: config[k] for k in ("d_model", "d_ff", "e_layers", "d_layers", "dropout") if k in config})
     if variant == "multi_scale_electro_transformer":
         return MultiScaleElectroTransformer(
             d_model=config.get("d_model", 64),

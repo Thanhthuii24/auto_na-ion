@@ -2,7 +2,7 @@
   "status": "locked",
   "protocol_version": "BATTERYLIFE-NA-ION-R1-V1",
   "approved_at": "2026-11-07T23:41:00+07:00",
-  "approved_protocol_sha256": "b546d9108ce5895952cd296bb29aa03391e430f3f893c9bbc3519a58a297dd38",
+  "approved_protocol_sha256": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "reference_sources": {
     "BatteryLife/data_provider/data_loader.py": "f49f22e379bf9012fd284c2ef82e4fdd350e70db760f995d85661f7ac29e1fe2",
     "BatteryLife/data_provider/data_split_recorder.py": "f6f0d42b721c533351ed93467a1ebcaf1021b4daff234e828ab18698fa724b77",
@@ -12,7 +12,7 @@
     "BatteryLife/run_main.py": "a90a5e39bd3ed26b7dad20b42f2ffaa0d18b78a9cbb76788dfbc3a36357ea216",
     "BatteryLife/utils/tools.py": "6f4bee1839e95bbb952f9c4803bd8d3aa22a689a45724357b7f2ddc58b65c6bc"
   },
-  "protocol_fingerprint": "b546d9108ce5895952cd296bb29aa03391e430f3f893c9bbc3519a58a297dd38",
+  "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "cache_path": ".cache/batterylife_naion_split2021_v1.pt",
   "cache_sha256": "a7a65d40d5484bfeb01e709890725cbe52c001990c92d02f5c7eb22b9a08fb85",
   "data_implementation_sha256": "b1a629785a3fd532e9364464a6fbba8e952d6edc5046a6d573b71d79af0711be",
@@ -38,5 +38,15 @@
   "training_lock": {
     "learning_rate": 5e-05,
     "batch_size": 128
-  }
+  },
+  "amendments": [
+    {
+      "id": "A2-NA",
+      "approved_by": "user",
+      "approved_at": "2026-11-08",
+      "previous_protocol_sha256": "b546d9108ce5895952cd296bb29aa03391e430f3f893c9bbc3519a58a297dd38",
+      "new_protocol_sha256": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+      "summary": "max 100 epochs, min 5, patience 5 (paper CPMLP.sh)"
+    }
+  ]
 }

@@ -4,14 +4,14 @@
   "research_mode": "model_search_no_physics",
   "phase": "phase1_model",
   "phase_status": "baseline_pending",
-  "workflow_status": "proposal_needed",
+  "workflow_status": "running_remote",
   "protocol_status": "locked",
-  "protocol_fingerprint": "b546d9108ce5895952cd296bb29aa03391e430f3f893c9bbc3519a58a297dd38",
+  "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": null,
+  "current_experiment": "NA-E000",
   "next_experiment_id": "NA-E000",
-  "next_action": "Write NA-E000 proposal: CPMLP baseline (paper hyper-parameters) on split 2021, then splits 42 and 2024 (NA-E001/E002)",
+  "next_action": "Wait for NA-E000 on Colab, then remote.py fetch NA-E000; then NA-E001 (split 42) and NA-E002 (split 2024)",
   "active_architecture_parent": null,
   "success_criteria": {
     "same_checkpoint_required": true,
@@ -138,6 +138,12 @@
       "date": "2026-11-07",
       "by": "user",
       "summary": "New project v5_auto on NA-ion, same workflow as v4_auto; 3 paper splits (2021/42/2024) reported as mean ± std; runs on remote GPU (Kaggle/Colab); all three agents work together on this project."
+    },
+    {
+      "id": "A2-NA",
+      "date": "2026-11-08",
+      "by": "user",
+      "summary": "Epochs: max 100, min 5, patience 5 after epoch 5 (paper CPMLP.sh); the Li-ion 15-epoch cap does not apply."
     }
   ],
   "decision_metrics": {
