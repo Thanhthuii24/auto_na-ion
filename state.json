@@ -1,0 +1,173 @@
+{
+  "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+  "workflow_version": "three-phase-relative-huber-v1",
+  "research_mode": "model_search_no_physics",
+  "phase": "phase1_model",
+  "phase_status": "baseline_pending",
+  "workflow_status": "proposal_needed",
+  "protocol_status": "locked",
+  "protocol_fingerprint": "b546d9108ce5895952cd296bb29aa03391e430f3f893c9bbc3519a58a297dd38",
+  "run_approved": true,
+  "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
+  "current_experiment": null,
+  "next_experiment_id": "NA-E000",
+  "next_action": "Write NA-E000 proposal: CPMLP baseline (paper hyper-parameters) on split 2021, then splits 42 and 2024 (NA-E001/E002)",
+  "active_architecture_parent": null,
+  "success_criteria": {
+    "same_checkpoint_required": true,
+    "validation_mape_strictly_below": null,
+    "validation_acc15_strictly_above": 0.68,
+    "one_seed_is_preliminary_evidence_only": true,
+    "final_candidate_requires_three_seed_mean": true,
+    "current_status": "baseline_pending",
+    "note": "target set after the CPMLP 3-split baseline"
+  },
+  "loss_lock": {
+    "main_loss": "relative_huber",
+    "relative_huber_delta": 0.15,
+    "checkpoint_mape_tolerance": 0.005,
+    "physics_loss_weight": 0.0,
+    "extra_loss_weight": 0.0,
+    "learning_rate": 5e-05,
+    "batch_size": 128
+  },
+  "domain_guardrails": {
+    "minimum_validation_cells": 10,
+    "maximum_mape_regression": 0.03,
+    "maximum_acc15_regression": 0.05,
+    "small_groups_are_diagnostic_only": true
+  },
+  "decision_schema": {
+    "run_validity": [
+      "VALID",
+      "INVALID"
+    ],
+    "decision_for_valid_run": [
+      "KEEP",
+      "DISCARD"
+    ],
+    "invalid_run_has_no_decision": true,
+    "conclusion_and_next_step_are_plain_language": true
+  },
+  "baseline": {
+    "status": "pending",
+    "model": "CPMLP",
+    "required_splits": [
+      "2021",
+      "42",
+      "2024"
+    ],
+    "runs": [],
+    "report": "baseline_report.md"
+  },
+  "active_candidates": [],
+  "test_status": "unused",
+  "prior_run_results_allowed": false,
+  "phase1_stopping": {
+    "minimum_valid_architecture_experiments": 20,
+    "minimum_architecture_families": 4,
+    "no_gain_window": 15,
+    "hard_cap_valid_architecture_experiments": 50,
+    "meaningful_mape_gain": 0.008,
+    "meaningful_acc15_gain": 0.02,
+    "valid_architecture_experiments": 0,
+    "architecture_families_covered": [],
+    "valid_runs_since_meaningful_gain": 0,
+    "promotion_eligible_incomplete_runs": [],
+    "meaningful_rmse_gain": 21
+  },
+  "phase_gates": {
+    "phase1_model": {
+      "status": "ACTIVE"
+    },
+    "phase2_loss": {
+      "status": "LOCKED",
+      "requires": "Phase 1 closed (A3)"
+    },
+    "phase3_tinyml": {
+      "status": "LOCKED",
+      "requires": "Phase 2 closed (A3)"
+    }
+  },
+  "budget": {
+    "limits": {
+      "max_experiments": 150,
+      "max_seconds_per_experiment": 18000,
+      "max_training_seconds": 250000,
+      "phase1_valid_architecture_experiments": 50
+    },
+    "counter": "optimizer_training_compute_seconds",
+    "usage": {
+      "experiments": 0,
+      "training_seconds": 0.0
+    },
+    "remaining": {
+      "experiments": 150,
+      "training_seconds": 250000
+    },
+    "exhausted": false,
+    "status": "active"
+  },
+  "amendments": [
+    {
+      "id": "A1",
+      "date": "2026-11-02",
+      "by": "user",
+      "summary": "RMSE co-primary; DB-MAPE guardrail; BatteryLife paper baselines as reference set with local reproductions; Phase 1 = most accurate model (no efficiency-first track); budget raised"
+    },
+    {
+      "id": "A2",
+      "date": "2026-11-02",
+      "by": "user",
+      "summary": "Development room: promising directions get up to 3 evidence-led follow-ups; close after 4 consecutive DISCARDs; non-promising get one repair (program.md §7)"
+    },
+    {
+      "id": "A3",
+      "date": "2026-11-02",
+      "by": "user",
+      "summary": "Phase 2 (and later Phase 3) unlock when the previous phase closes by target OR no-gain stop/hard limit; best 3-seed-confirmed model frozen; TARGET_NOT_MET recorded"
+    },
+    {
+      "id": "A4",
+      "date": "2026-11-02",
+      "by": "user",
+      "summary": "seen/unseen-condition metric; Phase-1 focus on unseen-condition generalization (D1 SOC-window-aware view, D2 reference-pair, D3 learned-shape head); paper baselines reduced to CPTransformer + CPGRU as reference"
+    },
+    {
+      "id": "A1-NA",
+      "date": "2026-11-07",
+      "by": "user",
+      "summary": "New project v5_auto on NA-ion, same workflow as v4_auto; 3 paper splits (2021/42/2024) reported as mean ± std; runs on remote GPU (Kaggle/Colab); all three agents work together on this project."
+    }
+  ],
+  "decision_metrics": {
+    "primary": "mape",
+    "co_primary": "rmse",
+    "guardrail": "db_mape (domains >=10 val cells)",
+    "threshold_mape": 0.008,
+    "threshold_rmse_cycles": 21,
+    "rmse_regression_allowance": 10,
+    "db_mape_regression_allowance": 0.01,
+    "acc15_gain_path": 0.02,
+    "tool": "tools/rescore.py"
+  },
+  "phase1_scope": "most accurate model; size not limited in Phase 1; compression in Phase 3",
+  "agents": {
+    "lead": "claude (VS Code)",
+    "reviewer": "codex sol; while out of tokens: gemini-4-argon-high",
+    "executor": "gemini-3.8-flash-high",
+    "reporter": "gemini-4-argon-high",
+    "guide": "multiagent.md"
+  },
+  "test_scope": "unused",
+  "split_protocol": {
+    "env": "BL_SPLIT",
+    "splits": [
+      "2021",
+      "42",
+      "2024"
+    ],
+    "source": "BatteryLife data_split_recorder.py",
+    "rule": "screen on split 2021; KEEP candidates confirmed on 42 and 2024; compare mean ± std over the 3 splits (as the paper)"
+  }
+}

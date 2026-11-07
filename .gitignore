@@ -1,0 +1,67 @@
+# Python-generated files
+__pycache__/
+.cache/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+worktrees/
+results/
+queue/
+
+
+# Experimental code/artifacts
+dev/
+
+# Results file 
+results.tsv
+*.log
+!experiments/R4-E*/train.log
+
+# Agent call logs (large)
+handoff/log/*.jsonl
+experiments/_queue.log
+
+# Agent / assistant files (local only, not public)
+claude/
+codex/
+gemini/
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+multiagent.md
+handoff/
+tools/ask_claude.sh
+tools/ask_codex.sh
+tools/ask_gemini.sh
+tools/_common.sh
+tools/agents.env
+.claude/
+
+# Run-time logs
+live.log
+.*.train.log
+experiments/_*.log
+
+# Model checkpoints (local only)
+*.pt
+
+# Test files (local only)
+test_*.py
+*_test.py
+tests/
+
+# Local workflow/infra files (not public)
+.python-version
+baseline_report.md
+analysis.schema.json
+audit_cache.py
+pyproject.toml
+run_next.sh
+run_step.sh
+validate_analysis.py
+workflow_preflight.py
