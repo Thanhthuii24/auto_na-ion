@@ -1,0 +1,191 @@
+{
+  "proposal": {
+    "id": "NA-E001",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "baseline",
+    "model": {
+      "display_name": "CPMLP",
+      "variant": "cpmlp",
+      "d_model": 64,
+      "d_ff": 32,
+      "e_layers": 1,
+      "d_layers": 9,
+      "dropout": 0.0
+    },
+    "reference_experiment": null,
+    "observation": "v5_auto (Na-ion) has no baseline yet. The paper reports CPMLP on Na-ion with its own selected hyper-parameters (Selected_hyperparameters.md).",
+    "primary_hypothesis": "CPMLP with the paper Na-ion configuration, trained under the locked Relative Huber loss, gives a valid reference with finite connected gradients on the tiny Na-ion split (20 train / 6 val cells).",
+    "question_inherited": "What is the valid CPMLP baseline for Na-ion split 2021 under the v5 locked workflow?",
+    "unresolved_from_reference": "No v5 result exists.",
+    "why_this_experiment": "Baseline repeat of the Codex-approved NA-E000 config on paper split 42 (only split and seed change).",
+    "modification": "CPMLP (d_model 64, d_ff 32, e_layers 1, d_layers 9, dropout 0; paper Na-ion row) on BL_SPLIT=42, Relative Huber delta 0.15, Adam lr 5e-5, batch 128 (paper 64 x 2 GPUs), up to 100 epochs with patience 5 (paper CPMLP.sh). Runs on Colab CUDA.",
+    "changed_components": "Relative to v4 R4-E000: dataset (Na-ion), CPMLP size, batch 128, epochs 100 (one epoch is only ~15 steps), diagnostics every 50 steps, CUDA device.",
+    "held_constant_components": "Relative Huber delta 0.15, checkpoint MAPE tolerance 0.005, no scheduler, zero physics or extra loss, prefix samples 1..min(100, EOL-1), preprocessing identical to v4/BatteryLife.",
+    "controlled_variables": "Split 42 and training seed 42, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "One selected checkpoint with overall MAPE, Acc@15, MAE, RMSE, per-cell errors for all 6 val cells, prefix and EOL-band errors, gradient health.",
+    "rejection_condition": "Invalid if protocol/cache checks fail, values are non-finite, a block is disconnected, fewer than 5 epochs run, the loss differs from Relative Huber 0.15, or checkpoint selection breaks the fixed rule.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; CPMLP block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 900
+    },
+    "training": {
+      "seed": 42,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    }
+  },
+  "metrics": {
+    "mape": 0.2337265183028667,
+    "acc15": 0.3466666666666667,
+    "mae": 50.17540885925293,
+    "rmse": 62.527144333085474,
+    "prediction_diagnostics": {
+      "prediction_mean": 186.0258026123047,
+      "prediction_std": 30.854162216186523,
+      "prediction_min": 133.25880432128906,
+      "prediction_max": 222.80096435546875,
+      "target_mean": 212.8333282470703,
+      "target_std": 63.92030334472656,
+      "prediction_to_target_std_ratio": 0.4826973684681676,
+      "mean_signed_relative_error": -0.05205174908041954,
+      "relative_error_std": 0.2678724229335785,
+      "prediction_target_correlation": 0.468202547575325,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.28132580265856105,
+        "acc15": 0.25,
+        "mae": 62.005567677815755,
+        "rmse": 75.24422304940131,
+        "bias": -47.88959884643555,
+        "relative_bias": -0.14318297803401947,
+        "prediction_mean": 164.94374084472656,
+        "target_mean": 212.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.22599489068509165,
+        "acc15": 0.4,
+        "mae": 50.6094241672092,
+        "rmse": 65.03702351544531,
+        "bias": -35.57258605957031,
+        "relative_bias": -0.09571436047554016,
+        "prediction_mean": 177.2607421875,
+        "target_mean": 212.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.22191118403511814,
+        "acc15": 0.38,
+        "mae": 47.9536572265625,
+        "rmse": 60.39765775522331,
+        "bias": -25.044885635375977,
+        "relative_bias": -0.04659910872578621,
+        "prediction_mean": 187.78843688964844,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.23032138181330036,
+        "acc15": 0.3333333333333333,
+        "mae": 48.70903228759766,
+        "rmse": 60.158303888052565,
+        "bias": -21.586071014404297,
+        "relative_bias": -0.028034642338752747,
+        "prediction_mean": 191.2472686767578,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.23454625188856895,
+        "acc15": 0.3333333333333333,
+        "mae": 48.87106435139974,
+        "rmse": 59.74203400642858,
+        "bias": -20.09980010986328,
+        "relative_bias": -0.018871460109949112,
+        "prediction_mean": 192.73353576660156,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.2337265183028667,
+        "acc15": 0.3466666666666667,
+        "mae": 50.17540885925293,
+        "rmse": 62.527144333085474,
+        "bias": -26.807538986206055,
+        "relative_bias": -0.05205174908041954,
+        "prediction_mean": 186.0258026123047,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.2337265183028667,
+        "acc15": 0.3466666666666667,
+        "mae": 50.17540885925293,
+        "rmse": 62.527144333085474,
+        "bias": -26.807538986206055,
+        "relative_bias": -0.05205174908041954,
+        "prediction_mean": 186.0258026123047,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "baseline",
+    "seed": 42,
+    "training_compute_seconds": 2.763,
+    "validation_seconds": 4.397,
+    "wall_seconds": 22.347,
+    "num_steps": 270,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 97.711793,
+    "num_params": 510593,
+    "model_bytes_fp32": 2042372,
+    "peak_device_memory_bytes": 357958656,
+    "best_epoch": 13,
+    "minimum_validation_mape": 0.2337265183028667,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 18,
+    "last_epoch": 18,
+    "last_epoch_steps": 15,
+    "epoch_progress": 18.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "CPMLP (d_model 64, d_ff 32, e_layers 1, d_layers 9, dropout 0; paper Na-ion row) on BL_SPLIT=42, Relative Huber delta 0.15, Adam lr 5e-5, batch 128 (paper 64 x 2 GPUs), up to 100 epochs with patience 5 (paper CPMLP.sh). Runs on Colab CUDA.",
+    "device": "cuda"
+  }
+}
