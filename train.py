@@ -87,11 +87,12 @@ class NaFadeNet(nn.Module):
 
     def __init__(self, curve_channels=32, d_model=48, dilations=(1, 2, 4, 8), dropout=0.1,
                  fade_scale=10.0, use_anchor=True, use_fade=True, extrap_gate=False,
-                 extrap_window=20, extrap_threshold=0.8, extrap_cap=600.0):
+                 extrap_window=20, extrap_threshold=0.8, extrap_cap=600.0, gate_param_scale=None):
         super().__init__()
         self.fade_scale, self.use_anchor, self.use_fade = fade_scale, use_anchor, use_fade
         self.extrap_gate, self.extrap_window = extrap_gate, extrap_window
         self.extrap_threshold, self.extrap_cap = extrap_threshold, extrap_cap
+        self.gate_param_scale = gate_param_scale  # NA-E009: reparameterised gate (None = NA-E006 behaviour)
         C, D = curve_channels, d_model
         self.curve_enc = nn.Sequential(
             nn.Conv1d(3, 16, 7, stride=2, padding=3), nn.GELU(),
@@ -109,8 +110,16 @@ class NaFadeNet(nn.Module):
             self.gate = nn.Sequential(nn.Linear(4, 16), nn.GELU(), nn.Linear(16, 1))
             nn.init.zeros_(self.gate[2].weight)
             nn.init.constant_(self.gate[2].bias, -2.0)       # starts mostly on the network (g ~ 0.12)
-            self.ext_scale = nn.Parameter(torch.tensor(2.0))  # z_ext = a * est/100 + c (learned map to target space)
-            self.ext_shift = nn.Parameter(torch.tensor(-3.6))
+            if gate_param_scale is None:
+                self.ext_scale = nn.Parameter(torch.tensor(2.0))  # z_ext = a * est/100 + c (learned map to target space)
+                self.ext_shift = nn.Parameter(torch.tensor(-3.6))
+            else:
+                # g = sigmoid(-2 + s * MLP), a = 2 + s * da, c = -3.6 + s * dc; zero-init so the start equals NA-E006.
+                # Adam moves each raw parameter by ~lr per step, so s multiplies the effective step of these
+                # few gate parameters only (the locked optimizer and lr are unchanged).
+                nn.init.zeros_(self.gate[2].bias)
+                self.ext_da = nn.Parameter(torch.tensor(0.0))
+                self.ext_dc = nn.Parameter(torch.tensor(0.0))
 
     def _extrapolate(self, q, m):
         """Masked least-squares line on the last `extrap_window` observed cycles of q (capacity / nominal),
@@ -158,8 +167,13 @@ class NaFadeNet(nn.Module):
         with torch.no_grad():
             est, slope, resid = self._extrapolate(curves[:, :, 2, 150:].amax(-1) * m, m)
             feats = torch.stack([n / T, est / 100.0, (slope * 1000.0).clamp(-10, 10), (resid * 100.0).clamp(0, 10)], -1)
-        g = torch.sigmoid(self.gate(feats)).squeeze(-1)
-        z_ext = self.ext_scale * est / 100.0 + self.ext_shift
+        if self.gate_param_scale is None:
+            g = torch.sigmoid(self.gate(feats)).squeeze(-1)
+            z_ext = self.ext_scale * est / 100.0 + self.ext_shift
+        else:
+            s = self.gate_param_scale
+            g = torch.sigmoid(-2.0 + s * self.gate(feats)).squeeze(-1)
+            z_ext = (2.0 + s * self.ext_da) * est / 100.0 + (-3.6 + s * self.ext_dc)
         return (1 - g) * out + g * z_ext
 
     def diagnostic_modules(self):
@@ -4123,7 +4137,7 @@ def build_model(config):
         return BatteryLifeModelWrapper(config["batterylife_model"], config["batterylife_config"])
     if variant == "na_fade_net":
         keys = ("curve_channels", "d_model", "dilations", "dropout", "fade_scale", "use_anchor", "use_fade",
-                "extrap_gate", "extrap_window", "extrap_threshold", "extrap_cap")
+                "extrap_gate", "extrap_window", "extrap_threshold", "extrap_cap", "gate_param_scale")
         kw = {k: config[k] for k in keys if k in config}
         if "dilations" in kw:
             kw["dilations"] = tuple(kw["dilations"])
