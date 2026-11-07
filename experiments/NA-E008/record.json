@@ -1,0 +1,209 @@
+{
+  "proposal": {
+    "id": "NA-E008",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "architecture",
+    "model": {
+      "display_name": "NaFadeNet+ExtrapGate",
+      "variant": "na_fade_net",
+      "curve_channels": 32,
+      "d_model": 48,
+      "dilations": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "dropout": 0.1,
+      "fade_scale": 10.0,
+      "use_anchor": true,
+      "use_fade": true,
+      "extrap_gate": true,
+      "extrap_window": 20,
+      "extrap_threshold": 0.8,
+      "extrap_cap": 600.0
+    },
+    "reference_experiment": "NA-E003",
+    "observation": "Parent NaFadeNet 3-split MAPE 0.1690 \u00b1 0.0420. Its late-prefix error stays high (prefix 51-100 MAPE 0.13-0.20; late bias -17 to -29 cycles) and predictions are compressed on split 42 (spread 0.47). Non-learning diagnostic: a masked least-squares line on the last 20 observed discharge capacities (capacity/nominal), extended to the EOL threshold 0.8, gives val MAPE 0.04-0.11 on prefixes 51-100 on all three splits but 2.5-4.7 on prefixes 1-10. The network and the extrapolation are complementary.",
+    "primary_hypothesis": "A learned gate that mixes the NaFadeNet output with a parameter-free fade extrapolation (gate inputs: prefix fraction, extrapolated EOL, slope, fit residual) will rely on the network early and on the extrapolation late, cutting late-prefix MAPE and the extreme-EOL compression.",
+    "question_inherited": "Can the model use the direct physical crossing estimate where it is reliable?",
+    "unresolved_from_reference": "Late-prefix error and compression of NaFadeNet.",
+    "why_this_experiment": "Confirmation of NA-E006 (Codex APPROVE) on paper split 2024; only split and seed change.",
+    "modification": "NaFadeNet (unchanged) + gated extrapolation head: est = masked line fit on last 20 observed q_d (cycles), crossing 0.8, clamped [n+1, 600] (no gradient); g = sigmoid(MLP 4->16->1 on [n/100, est/100, 1000*slope, 100*resid]) with output bias init -2; z_ext = a*est/100 + c (learned, init a=2, c=-3.6); y = (1-g)*y_net + g*z_ext. +99 params.",
+    "changed_components": "Head only (adds the gated extrapolation path); NaFadeNet body unchanged.",
+    "held_constant_components": "NaFadeNet config, split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+    "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "Split-2021 MAPE/RMSE/Acc@15 vs NA-E003; prefix-group MAPE; mean gate value per prefix group; per-cell errors.",
+    "rejection_condition": "Confirmation run; KEEP the direction if the 3-split mean beats parent NaFadeNet 0.1690 by >= 0.008.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; CPMLP block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 300
+    },
+    "training": {
+      "seed": 2024,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    },
+    "architecture_addendum": {
+      "responsible_stage": "Head",
+      "mechanism": "gated mixture of the network prediction and a masked fade-extrapolation estimate",
+      "shapes": "curves [B,100,3,300], mask [B,100] -> NaFadeNet y_net [B]; q_d [B,100] (x mask) -> masked line fit on last 20 observed -> est, slope, resid [B] -> feats [B,4] -> gate MLP -> g [B]; z_ext [B]; y [B]",
+      "mask_path": "q_d is multiplied by mask; the fit weights are mask * (t > n-20), so padded cycles have weight 0; n = mask.sum; est clamped to >= n+1; unit test: changing padded cycles changes the output by 0.0.",
+      "expected_evidence": "vs parent NA-E003 on split 2021 (MAPE 0.1234, RMSE 29.0, Acc@15 0.642; DB-MAPE = MAPE): lower MAPE/RMSE, prefix 51-100 MAPE below 0.10, gate value rising with prefix length, bias closer to 0."
+    }
+  },
+  "metrics": {
+    "mape": 0.1550019024115564,
+    "acc15": 0.525,
+    "mae": 25.382192103068032,
+    "rmse": 30.567153376268212,
+    "prediction_diagnostics": {
+      "prediction_mean": 168.7745361328125,
+      "prediction_std": 45.3524055480957,
+      "prediction_min": 109.42015075683594,
+      "prediction_max": 248.84637451171875,
+      "target_mean": 169.8333282470703,
+      "target_std": 40.39148712158203,
+      "prediction_to_target_std_ratio": 1.1228208907382107,
+      "mean_signed_relative_error": 0.003960906527936459,
+      "relative_error_std": 0.1871940940618515,
+      "prediction_target_correlation": 0.7519942918872676,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.14642852575442136,
+        "acc15": 0.6666666666666666,
+        "mae": 23.798111470540366,
+        "rmse": 29.988931844452438,
+        "bias": 4.903509616851807,
+        "relative_bias": 0.05317585542798042,
+        "prediction_mean": 174.73683166503906,
+        "target_mean": 169.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.1677774343627713,
+        "acc15": 0.4111111111111111,
+        "mae": 27.003832583957248,
+        "rmse": 31.56526303102337,
+        "bias": 1.2375333309173584,
+        "relative_bias": 0.01910017430782318,
+        "prediction_mean": 171.07086181640625,
+        "target_mean": 169.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.18430837905557648,
+        "acc15": 0.5,
+        "mae": 28.80504165649414,
+        "rmse": 33.248797833988505,
+        "bias": 7.0308380126953125,
+        "relative_bias": 0.05419094115495682,
+        "prediction_mean": 176.86416625976562,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.14436781039983632,
+        "acc15": 0.52,
+        "mae": 23.634798990885418,
+        "rmse": 28.82385044435079,
+        "bias": -1.2489367723464966,
+        "relative_bias": -0.000495804357342422,
+        "prediction_mean": 168.58438110351562,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.13209354927138156,
+        "acc15": 0.5666666666666667,
+        "mae": 23.367383626302082,
+        "rmse": 29.043977669568275,
+        "bias": -12.721033096313477,
+        "relative_bias": -0.07058193534612656,
+        "prediction_mean": 157.11228942871094,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.1550019024115564,
+        "acc15": 0.525,
+        "mae": 25.382192103068032,
+        "rmse": 30.567153376268212,
+        "bias": -1.0588022470474243,
+        "relative_bias": 0.003960906527936459,
+        "prediction_mean": 168.7745361328125,
+        "target_mean": 169.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.1550019024115564,
+        "acc15": 0.525,
+        "mae": 25.382192103068032,
+        "rmse": 30.567153376268212,
+        "bias": -1.0588022470474243,
+        "relative_bias": 0.003960906527936459,
+        "prediction_mean": 168.7745361328125,
+        "target_mean": 169.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "architecture",
+    "seed": 2024,
+    "training_compute_seconds": 5.372,
+    "validation_seconds": 5.138,
+    "wall_seconds": 27.729,
+    "num_steps": 360,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 67.015306,
+    "num_params": 39236,
+    "model_bytes_fp32": 156944,
+    "peak_device_memory_bytes": 804914688,
+    "best_epoch": 23,
+    "minimum_validation_mape": 0.15408806449785856,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 24,
+    "last_epoch": 24,
+    "last_epoch_steps": 15,
+    "epoch_progress": 24.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "NaFadeNet (unchanged) + gated extrapolation head: est = masked line fit on last 20 observed q_d (cycles), crossing 0.8, clamped [n+1, 600] (no gradient); g = sigmoid(MLP 4->16->1 on [n/100, est/100, 1000*slope, 100*resid]) with output bias init -2; z_ext = a*est/100 + c (learned, init a=2, c=-3.6); y = (1-g)*y_net + g*z_ext. +99 params.",
+    "device": "cuda"
+  }
+}

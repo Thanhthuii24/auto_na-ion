@@ -105,3 +105,12 @@ Raw experiment artifacts remain unchanged for reproducibility.
 
 - VALID, KEEP. MAPE 0.1819 (parent 0.2062), Acc@15 0.450 (0.383), RMSE 52.3 (58.1), bias -25.9, spread 0.48.
 - Prefix MAPE 0.236/0.201/0.185/0.162/0.165 — every band better than the parent. Worst cells 1-8-57 0.306, 5-3-37 0.281.
+
+## NA-E008 — NaFadeNet + ExtrapGate, Split 2024 Confirmation; parent promotion
+
+- VALID, KEEP. MAPE 0.1550 (parent 0.1772), Acc@15 0.525, RMSE 30.6, bias -1.1, spread 1.12.
+- **3-split: ExtrapGate 0.1474 ± 0.0389, Acc@15 0.554 ± 0.121, RMSE 35.6 ± 14.8**
+  vs NaFadeNet 0.1690 ± 0.0420 and CPMLP 0.1778 ± 0.0539. Gain 0.0216 → NaFadeNet+ExtrapGate is the active parent.
+- Analyses NA-E007/E008 were drafted by the lead (Codex usage limit, Gemini not logged in); Codex re-check pending.
+- Caveat: on split 2021 the gate stayed at init (g ≈ 0.12); the gain is the extrapolation signal blended at a
+  near-constant weight. Next (needs reviewer): gate repair and a fixed-g ablation.

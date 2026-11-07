@@ -4,29 +4,30 @@
   "research_mode": "model_search_no_physics",
   "phase": "phase1_model",
   "phase_status": "architecture_search_active",
-  "workflow_status": "running_remote",
+  "workflow_status": "awaiting_reviewer",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
-  "next_experiment_id": "NA-E008",
-  "next_action": "Phase 1 own architectures (Relative Huber locked). NA-E003 = DualPhaseCoordConvAnchorTCN.",
+  "next_experiment_id": "NA-E009",
+  "next_action": "Waiting for reviewer (Codex usage limit until 05:03; Gemini not logged in). Planned: NA-E009 gate repair (logit scale), NA-E010 fixed-g=0.12 ablation. Codex must re-check lead-drafted analyses NA-E007/E008.",
   "active_architecture_parent": {
-    "experiment": "NA-E003",
-    "model": "NaFadeNet",
+    "experiment": "NA-E006",
+    "model": "NaFadeNet+ExtrapGate",
     "runs": [
-      "NA-E003",
-      "NA-E004",
-      "NA-E005"
+      "NA-E006",
+      "NA-E007",
+      "NA-E008"
     ],
     "three_split": {
-      "mape": 0.169,
-      "mape_std": 0.042,
-      "acc15": 0.498,
-      "rmse": 40.3
+      "mape": 0.1474,
+      "mape_std": 0.0389,
+      "acc15": 0.554,
+      "acc15_std": 0.121,
+      "rmse": 35.6
     },
-    "reason": "3-split MAPE gain 0.0089 over CPMLP (program.md 7)"
+    "reason": "3-split MAPE gain 0.0216 over NaFadeNet (program.md 7)"
   },
   "success_criteria": {
     "same_checkpoint_required": true,
@@ -127,14 +128,7 @@
       "rmse": 18.271094
     }
   },
-  "active_candidates": [
-    {
-      "experiment": "NA-E006",
-      "model": "NaFadeNet+ExtrapGate",
-      "split2021_mape": 0.10527,
-      "status": "pending 42/2024"
-    }
-  ],
+  "active_candidates": [],
   "test_status": "unused",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
@@ -144,7 +138,7 @@
     "hard_cap_valid_architecture_experiments": 50,
     "meaningful_mape_gain": 0.008,
     "meaningful_acc15_gain": 0.02,
-    "valid_architecture_experiments": 3,
+    "valid_architecture_experiments": 6,
     "architecture_families_covered": [
       "anchor_relative_fade_trajectory_tcn"
     ],
@@ -174,7 +168,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 8,
+      "experiments": 9,
       "training_seconds": 28
     },
     "remaining": {
