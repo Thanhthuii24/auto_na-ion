@@ -67,3 +67,12 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - **Frozen CPMLP baseline (3 splits): MAPE 0.1778 ± 0.0539, Acc@15 0.499 ± 0.144, RMSE 41.4 ± 18.3 cycles.**
 - Shared failure across splits: predictions compressed toward the train mean (negative bias), cells at the
   EOL extremes carry most of the error. Next: paper baselines CPTransformer / CPGRU (program.md §2b).
+
+## NA-E003 — NaFadeNet (new Na-ion family), Split 2021 Screen
+
+- Model: per-cycle CNN -> [h, h-h_1, q_d/q_d1, q_c/q_c1] -> causal masked TCN (1/2/4/8) -> mean+last -> MLP; 39,137 params.
+  Loss Relative Huber 0.15 (Phase-1 lock). Codex APPROVE (v3 after two rejected drafts). Code by the lead (Gemini not logged in).
+- Result: VALID, KEEP as candidate. MAPE 0.1234 (CPMLP 0.1261), RMSE 29.0 (30.3), Acc@15 0.642 (0.633); best epoch 7 of 12.
+- Hypothesis partly refuted: prefix MAPE 0.135/0.093/0.100/0.127/0.157 still rises after 50 cycles; spread 0.76 (more
+  compressed), bias -23.0. Val MAPE climbs from 0.123 to 0.210 after epoch 7 while train loss keeps falling -> small-sample overfitting.
+- Next: confirm on splits 42/2024; if the mean holds, address overfitting/late-prefix within the direction (A2 follow-up).

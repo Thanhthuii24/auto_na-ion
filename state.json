@@ -9,8 +9,8 @@
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": "NA-E003",
-  "next_experiment_id": "NA-E003",
+  "current_experiment": null,
+  "next_experiment_id": "NA-E004",
   "next_action": "Phase 1 own architectures (Relative Huber locked). NA-E003 = DualPhaseCoordConvAnchorTCN.",
   "active_architecture_parent": null,
   "success_criteria": {
@@ -112,7 +112,14 @@
       "rmse": 18.271094
     }
   },
-  "active_candidates": [],
+  "active_candidates": [
+    {
+      "experiment": "NA-E003",
+      "model": "NaFadeNet",
+      "split2021_mape": 0.12340896883243062,
+      "status": "pending 42/2024 confirmation"
+    }
+  ],
   "test_status": "unused",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
@@ -150,7 +157,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 3,
+      "experiments": 4,
       "training_seconds": 28
     },
     "remaining": {
@@ -239,5 +246,12 @@
     ],
     "source": "BatteryLife data_split_recorder.py",
     "rule": "screen on split 2021; KEEP candidates confirmed on 42 and 2024; compare mean ± std over the 3 splits (as the paper)"
+  },
+  "directions": {
+    "na_fade_net": {
+      "status": "open",
+      "followups": 0,
+      "note": "anchor-relative fade trajectory; ablations planned after confirmation"
+    }
   }
 }
