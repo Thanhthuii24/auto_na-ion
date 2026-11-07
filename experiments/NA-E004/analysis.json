@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E004",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does the unchanged NaFadeNet confirmation beat CPMLP on Na-ion split 42 while improving prefix behavior and prediction spread?",
+    "outcome": "SUPPORTED",
+    "conclusion": "Independent recomputation from all 600 saved predictions confirms that NA-E004 beats the same-split CPMLP NA-E001: MAPE 0.206247 versus 0.233727 (-0.027479), RMSE 58.0577 versus 62.5271 cycles (-4.4694), and Acc@15 0.383333 versus 0.346667 (+0.036667). Prefix MAPE improves in every bin by 0.006418-0.043856 and declines from 0.257100 at prefixes 1-10 to 0.199439 at 76-100, although it bottoms at 0.186466 for 51-75 and late-prefix RMSE is 1.8819 cycles worse than CPMLP. The spread prediction is not supported: prediction/target SD is 0.468647 versus CPMLP's 0.482697, and bias is slightly more negative at -28.7114 versus -26.8075 cycles. This valid confirmation is KEEP evidence for the candidate, but promotion still requires split 2024 and the predeclared three-split mean improvement.",
+    "evidence_paths": [
+      "record.json$.metrics",
+      "record.json$.metrics.by_prefix",
+      "record.json$.metrics.prediction_diagnostics",
+      "experiments/NA-E001/record.json$.metrics",
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}",
+      "experiments/NA-E001/validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}"
+    ]
+  },
+  "main_symptom": "NaFadeNet improves split-42 sample MAPE, RMSE, and Acc@15 over CPMLP and raises prediction-target correlation from 0.468203 to 0.636312, but predictions remain strongly compressed (spread 0.468647) and underpredicted (bias -28.7114 cycles). Its late-prefix behavior is mixed: MAPE improves versus CPMLP, while 76-100 RMSE worsens to 61.6240 from 59.7420 and bias worsens to -40.4578 from -20.0998 cycles.",
+  "causes": [
+    {
+      "id": "anchor_trajectory_discrimination",
+      "class": "architecture/degradation-encoder",
+      "supporting_evidence": [
+        "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+        "record.json$.metrics.by_prefix",
+        "record.json$.metrics.prediction_diagnostics",
+        "experiments/NA-E001/record.json$.metrics.prediction_diagnostics"
+      ],
+      "contradicting_evidence": [
+        "Overall prediction/target spread decreases from 0.482697 for NA-E001 to 0.468647 for NA-E004 rather than moving toward 1.",
+        "Cell 270040-1-8-57 is effectively unchanged at 0.316556 versus 0.316212 MAPE, and cell 270040-6-6-26 regresses by 0.018737 MAPE.",
+        "The run changes architecture and fitted seed together, so the saved artifacts cannot attribute the gain to a single internal NaFadeNet input without ablation."
+      ],
+      "interpretation": "The anchor-relative fade trajectory is the leading explanation for the same-split gain. Relative to CPMLP, it improves MAPE in all five prefix groups and raises target correlation by 0.168109. The largest cell gains occur on 270040-5-8-32 (-0.088024 MAPE), 270040-5-3-37 (-0.052266), and 270040-5-5-35 (-0.039978), consistent with improved discrimination across the wide split-42 EOL range. The evidence supports retaining the mechanism for the final confirmation, not yet causal attribution among anchor, explicit fade ratios, and TCN.",
+      "missing_evidence": [
+        "The identical configuration's split-2024 result and the required three-split mean and sample standard deviation.",
+        "Matched use_anchor=false and use_fade=false ablations after confirmation to attribute the gain within NaFadeNet.",
+        "Repeated fits on the identical split-42 partition to separate seed variance from architecture effect."
+      ]
+    },
+    {
+      "id": "residual_extreme_cell_compression",
+      "class": "data/generalization",
+      "supporting_evidence": [
+        "record.json$.metrics.prediction_diagnostics",
+        "record.json$.metrics.by_domain.NA-ion",
+        "validation_predictions.npz::{prediction,target,cell_id,absolute_relative_error}",
+        "experiments/NA-E001/validation_predictions.npz::{prediction,target,cell_id,absolute_relative_error}"
+      ],
+      "contradicting_evidence": [
+        "Prediction-target correlation improves substantially from 0.468203 to 0.636312.",
+        "NaFadeNet reduces overall RMSE by 4.4694 cycles and improves three of the four highest-error CPMLP cells.",
+        "No extreme predictions are reported, so the remaining error is not caused by unstable output outliers."
+      ],
+      "interpretation": "Split 42 still exposes mean compression across its 102-307-cycle target range. The two long-life cells 270040-1-8-57 and 270040-5-3-37 remain underpredicted with MAPE 0.316556 and 0.350126, while the 102-cycle cell 270040-5-8-32 remains overpredicted at 0.280095. These extreme cells keep overall spread below one half of target spread and explain why the improved ordering does not reach strong absolute calibration.",
+      "missing_evidence": [
+        "Training-cell condition or nearest-neighbor evidence for the three extreme-EOL validation cells.",
+        "Cross-split evidence showing whether the same compression and signed-bias pattern persists on split 2024.",
+        "Cell-balanced training predictions at the selected checkpoint."
+      ]
+    },
+    {
+      "id": "late_prefix_overfit_or_miscalibration",
+      "class": "generalization/learning-dynamics",
+      "supporting_evidence": [
+        "record.json$.metrics.by_prefix",
+        "diagnostics.json$.epoch_history",
+        "diagnostics.json$.summary.learning_dynamics",
+        "validation_predictions.npz::{prediction,target,cell_id,prefix_length}"
+      ],
+      "contradicting_evidence": [
+        "The selected epoch-8 checkpoint improves every prefix-bin MAPE relative to NA-E001.",
+        "All monitored blocks have healthy finite gradients and updates, activations remain non-collapsed, and padding invariance is exact.",
+        "Validation MAPE after epoch 8 rises only to 0.219789 at epoch 13, much less sharply than NA-E003's split-2021 post-selection rise."
+      ],
+      "interpretation": "Additional late-cycle evidence is not converted into stable absolute calibration. MAPE improves through 51-75 cycles but rises at 76-100, where bias becomes -40.4578 cycles and RMSE exceeds CPMLP despite a lower MAPE. Continued train-loss decline after the selected epoch while validation remains worse makes mild small-sample overfit plausible, but the evidence also fits a representation or head calibration limit and does not localize a defective block.",
+      "missing_evidence": [
+        "Per-cell prefix curves identifying which validation cells drive the 76-100 bias reversal.",
+        "Split-2024 late-prefix metrics under the identical configuration.",
+        "A later matched ablation separating mean pooling, last-observed pooling, and prefix fraction in the head."
+      ]
+    }
+  ],
+  "selected_cause_id": "anchor_trajectory_discrimination",
+  "layers": [
+    {
+      "name": "curve_enc",
+      "role": "Encode each observed V/I/Q cycle curve into a learned 32-dimensional state.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.curve_enc",
+        "diagnostics.json$.summary.activation_health.curve_conv_first",
+        "diagnostics.json$.summary.activation_health.curve_conv_last"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The encoder has finite connected gradients, late gradient/parameter ratio 0.003627, late update ratio 0.000385, zero near-zero-gradient fraction, and healthy active features. No repair is supported before completing confirmation."
+    },
+    {
+      "name": "state_proj",
+      "role": "Fuse learned cycle state, anchor difference, and explicit capacity ratios into the 48-dimensional temporal state.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.state_proj",
+        "diagnostics.json$.summary.activation_health.state_proj"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The projection remains healthy with late gradient/parameter ratio 0.002732, update ratio 0.000445, no dead gradients, and fully active finite outputs; the same-split MAPE improvement supports retention."
+    },
+    {
+      "name": "tcn",
+      "role": "Read the masked anchor-relative trajectory through four causal residual temporal blocks.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn",
+        "diagnostics.json$.summary.activation_health.tcn_first",
+        "diagnostics.json$.summary.activation_health.tcn_middle",
+        "diagnostics.json$.summary.activation_health.tcn_last",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The TCN has finite connected gradients, late gradient/parameter ratio 0.003410, late update ratio 0.000560, active non-collapsed features, and exact padding invariance. Mixed late-prefix calibration is not a health failure."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "Normalize features independently at each temporal position without mixing observed and padded cycles.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn_norm",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "This is the smallest-gradient block but remains connected: late gradient/parameter ratio 0.000127, update ratio 0.0000341, zero near-zero-gradient fraction, and no padding sensitivity."
+    },
+    {
+      "name": "head",
+      "role": "Combine masked mean, last-observed temporal state, and prefix fraction into standardized EOL.",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.head",
+        "diagnostics.json$.summary.activation_health.head",
+        "diagnostics.json$.summary.activation_health.head_hidden",
+        "record.json$.metrics.prediction_diagnostics"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The head has finite connected gradients, late gradient/parameter ratio 0.003223, late update ratio 0.000451, and healthy activations. Output compression warrants tracking and later ablation, but not repair before the final confirmation."
+    }
+  ],
+  "gates": {
+    "gradient": "PASS",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "NA-E004 is a full-candidate confirmation rather than a screening run, so the generic screen hard floor is not applicable. It completed 13 epochs, has HEALTHY gradients, and improves all three requested same-split headline metrics."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "CONFIRM",
+    "summary": "Retain this valid split-42 confirmation and complete the unchanged NaFadeNet run on split 2024. Promote NaFadeNet only if the final three-split mean MAPE beats frozen CPMLP 0.1778 by at least 0.008; report mean plus sample standard deviation and continue tracking prediction compression and 76-100-cycle bias.",
+    "source_cause_id": "anchor_trajectory_discrimination",
+    "responsible_block": "whole NaFadeNet configuration"
+  }
+}

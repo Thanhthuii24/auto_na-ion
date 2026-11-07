@@ -10,7 +10,7 @@
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
-  "next_experiment_id": "NA-E004",
+  "next_experiment_id": "NA-E005",
   "next_action": "Phase 1 own architectures (Relative Huber locked). NA-E003 = DualPhaseCoordConvAnchorTCN.",
   "active_architecture_parent": null,
   "success_criteria": {
@@ -157,7 +157,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 4,
+      "experiments": 5,
       "training_seconds": 28
     },
     "remaining": {

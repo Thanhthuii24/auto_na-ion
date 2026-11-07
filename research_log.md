@@ -76,3 +76,8 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Hypothesis partly refuted: prefix MAPE 0.135/0.093/0.100/0.127/0.157 still rises after 50 cycles; spread 0.76 (more
   compressed), bias -23.0. Val MAPE climbs from 0.123 to 0.210 after epoch 7 while train loss keeps falling -> small-sample overfitting.
 - Next: confirm on splits 42/2024; if the mean holds, address overfitting/late-prefix within the direction (A2 follow-up).
+
+## NA-E004 — NaFadeNet, Split 42 Confirmation
+
+- VALID, KEEP. MAPE 0.2062 (CPMLP 0.2337), RMSE 58.1 (62.5), bias -28.7, spread 0.47; best epoch 8 of 13.
+- Prefix MAPE 0.257/0.220/0.204/0.186/0.199: here error does fall with observed cycles. Worst cells 5-3-37 0.350, 1-8-57 0.317.

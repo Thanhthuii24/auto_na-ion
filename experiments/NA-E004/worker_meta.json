@@ -1,0 +1,7 @@
+{
+ "id": "NA-E004",
+ "split": "42",
+ "exit_code": 0,
+ "wall_seconds": 18.9,
+ "gpu": "NVIDIA A100-SXM4-40GB"
+}
