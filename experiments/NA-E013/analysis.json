@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E013",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does removing the cycle-1 anchor difference worsen the GateRepair parent enough across the three paper splits to credit the anchor component?",
+    "outcome": "REFUTED",
+    "conclusion": "Independent recomputation from all 600 selected-checkpoint predictions gives split-42 MAPE 0.121316, Acc@15 0.7133, and RMSE 39.009 cycles. Against NA-E010, MAPE worsens by 0.004364 while Acc@15 improves by 0.0133 and RMSE improves by 2.251 cycles. Across NA-E012/013/014, no-anchor MAPE is 0.107351 +/- 0.019267 versus the parent's exact 0.108654 +/- 0.008549, a -0.001302 mean change rather than the +0.008 worsening required for anchor credit. The family therefore refutes attribution to the anchor.",
+    "evidence_paths": ["validation_predictions.npz::{prediction,target,cell_id,prefix_length}", "record.json$.metrics", "experiments/NA-E012/validation_predictions.npz", "experiments/NA-E014/validation_predictions.npz", "results.tsv::NA-E009,NA-E010,NA-E011"]
+  },
+  "main_symptom": "The split-42 ablation is a mixed local regression: MAPE worsens slightly, but Acc@15 and RMSE improve, and the completed three-split mean does not worsen; finite connected training still receives a gradient FAIL because the saved aggregate diagnostic warns about scale imbalance.",
+  "causes": [
+    {
+      "id": "C1_ANCHOR_REDUNDANT",
+      "class": "redundant state feature",
+      "supporting_evidence": ["validation_predictions.npz", "experiments/NA-E012/validation_predictions.npz", "experiments/NA-E014/validation_predictions.npz", "record.json$.metrics.rmse"],
+      "contradicting_evidence": ["record.json$.metrics.mape", "record.json$.metrics.by_prefix.01-10", "record.json$.metrics.by_prefix.51-75"],
+      "interpretation": "Absolute curve features, explicit fade rates, and temporal/gated processing can replace the anchor signal. This split's +0.0044 MAPE movement is below the credit margin, and the full family's mean is 0.0013 better than the parent, so the anchor has no demonstrated unique contribution.",
+      "missing_evidence": ["A repeated-run variance estimate within split 42"]
+    },
+    {
+      "id": "C2_SPLIT_CHECKPOINT_VARIATION",
+      "class": "small-validation-set and checkpoint variation",
+      "supporting_evidence": ["validation_predictions.npz::cell_id", "diagnostics.json$.summary.learning_dynamics", "record.json$.metrics.by_prefix"],
+      "contradicting_evidence": ["record.json$.metrics.acc15", "record.json$.metrics.rmse", "experiments/NA-E012/record.json$.metrics.mape"],
+      "interpretation": "Three cells worsen and three improve, with prefix-band MAPE changes ranging from -0.0038 to +0.0086. This heterogeneous six-cell movement and the opposite split-2021 result make checkpoint/split variation a plausible cause of the small local MAPE loss, not evidence that h-h_1 earns family-level credit.",
+      "missing_evidence": ["Matched reruns with different initialization seeds"]
+    }
+  ],
+  "selected_cause_id": "C1_ANCHOR_REDUNDANT",
+  "layers": [
+    {"name": "anchor_difference", "role": "provide h-h_1 as an explicit cycle-1-relative state feature", "evidence_paths": ["record.json$.proposal.model.use_anchor", "validation_predictions.npz", "experiments/NA-E012/validation_predictions.npz", "experiments/NA-E014/validation_predictions.npz"], "persistent_dead_gradient": false, "action": "REMOVE", "reason": "The completed removal family fails the predeclared +0.008 degradation threshold, so the absent component is not credited."},
+    {"name": "curve_enc", "role": "encode each observed cycle curve", "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc", "diagnostics.json$.summary.activation_health.curve_conv_last"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Gradients, updates, and activations are finite and healthy."},
+    {"name": "state_proj", "role": "project the remaining absolute-curve and fade state", "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj", "diagnostics.json$.summary.activation_health.state_proj"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "The reduced projection stays connected, updating, and activation-healthy."},
+    {"name": "tcn", "role": "model the masked causal degradation trajectory", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn", "diagnostics.json$.summary.padding_invariance"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "The TCN is healthy and padded-cycle output change is exactly zero."},
+    {"name": "tcn_norm", "role": "normalize temporal residual updates", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Finite nonzero late gradients and updates provide no ablation-specific reason to alter it."},
+    {"name": "head", "role": "produce the network EOL estimate before extrapolation fusion", "evidence_paths": ["diagnostics.json$.summary.layer_health.head", "diagnostics.json$.summary.activation_health.head"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "The inherited head remains finite, connected, and activation-healthy."},
+    {"name": "gate", "role": "adaptively blend network and extrapolation estimates", "evidence_paths": ["diagnostics.json$.summary.layer_health.gate", "diagnostics.json$.summary.activation_health.gate_out"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Late gradients and updates are healthy; adaptive gating was held constant."},
+    {"name": "ext_da", "role": "scaled correction to extrapolation slope calibration", "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_da", "diagnostics.json$.summary.branch_gradient_imbalance"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "The parameter itself is finite and healthy, but zero-initialization-sensitive block ratios drive the aggregate branch-imbalance warning and merit a diagnostic normalization repair."},
+    {"name": "ext_dc", "role": "scaled correction to extrapolation shift calibration", "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_dc"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "It is finite, connected, and updating without a layer-specific flag."}
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {"applicable": false, "pass": null, "reason": "training_stage is full_candidate, so screen_floor is non-applicable. diagnostics.json sets overall_gradient_health to WARNING because of branch-scale imbalance; there are no non-finite or disconnected gradients."}
+  },
+  "decision": "DISCARD",
+  "next_action": {
+    "type": "STOP",
+    "summary": "Discard this split-local result as recorded and close the completed anchor family without crediting h-h_1; no repair run is justified by a family mean that is not worse than the parent.",
+    "source_cause_id": "C1_ANCHOR_REDUNDANT",
+    "responsible_block": "anchor_difference"
+  }
+}

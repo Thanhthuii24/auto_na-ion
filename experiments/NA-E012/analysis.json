@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E012",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does removing the cycle-1 anchor difference worsen the GateRepair parent enough across the three paper splits to credit the anchor component?",
+    "outcome": "REFUTED",
+    "conclusion": "Independent recomputation from the 600 selected-checkpoint predictions gives split-2021 MAPE 0.085370, Acc@15 0.8283, and RMSE 20.585 cycles, improving on NA-E009 by 0.014504 MAPE, 0.0850 Acc@15, and 1.943 RMSE. With NA-E013 and NA-E014, the completed no-anchor family is 0.107351 +/- 0.019267 MAPE versus the parent's exact 0.108654 +/- 0.008549: removal changes the mean by -0.001302, not the +0.008 worsening required for credit. The anchor difference is therefore not credited.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+      "record.json$.metrics",
+      "experiments/NA-E013/validation_predictions.npz",
+      "experiments/NA-E014/validation_predictions.npz",
+      "results.tsv::NA-E009,NA-E010,NA-E011"
+    ]
+  },
+  "main_symptom": "Removing the anchor strongly improves split 2021 and the three-split mean is effectively unchanged, although variance grows and prefix 1-10 worsens by 0.0318 MAPE on this split; diagnostics are finite and connected but retain the zero-initialization-sensitive calibration imbalance warning.",
+  "causes": [
+    {
+      "id": "C1_ANCHOR_REDUNDANT",
+      "class": "redundant state feature",
+      "supporting_evidence": [
+        "validation_predictions.npz::{prediction,target,prefix_length}",
+        "record.json$.metrics.by_prefix",
+        "experiments/NA-E013/validation_predictions.npz",
+        "experiments/NA-E014/validation_predictions.npz"
+      ],
+      "contradicting_evidence": [
+        "record.json$.metrics.by_prefix.01-10",
+        "experiments/NA-E013/record.json$.metrics.mape",
+        "experiments/NA-E014/record.json$.metrics.mape"
+      ],
+      "interpretation": "The absolute curve embedding, fade features, TCN, and extrapolation gate already provide sufficient trajectory context. The completed ablation mean is 0.0013 better than the parent, far from the 0.008 degradation needed to credit h-h_1, despite small regressions on two splits and in the earliest prefix band.",
+      "missing_evidence": [
+        "A repeated-run variance estimate within each split"
+      ]
+    },
+    {
+      "id": "C2_SPLIT_CHECKPOINT_VARIATION",
+      "class": "small-validation-set and checkpoint variation",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.learning_dynamics",
+        "validation_predictions.npz::cell_id",
+        "experiments/NA-E013/record.json$.metrics",
+        "experiments/NA-E014/record.json$.metrics"
+      ],
+      "contradicting_evidence": [
+        "record.json$.metrics.mape",
+        "record.json$.metrics.acc15",
+        "record.json$.metrics.rmse"
+      ],
+      "interpretation": "Only six validation cells occur per split and the direction varies: removal improves 2021 strongly but worsens 42 and 2024 slightly. This explains the enlarged family standard deviation and cautions against treating the split-2021 gain as a generally superior mechanism, but it cannot supply the absent +0.008 family degradation required to credit the anchor.",
+      "missing_evidence": [
+        "Matched reruns with different initialization seeds on the same locked splits"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_ANCHOR_REDUNDANT",
+  "layers": [
+    {
+      "name": "anchor_difference",
+      "role": "provide h-h_1 as an explicit cycle-1-relative state feature",
+      "evidence_paths": ["record.json$.proposal.model.use_anchor", "validation_predictions.npz", "experiments/NA-E013/validation_predictions.npz", "experiments/NA-E014/validation_predictions.npz"],
+      "persistent_dead_gradient": false,
+      "action": "REMOVE",
+      "reason": "The component is absent in this family and its removal does not worsen three-split MAPE by the predeclared 0.008 credit threshold."
+    },
+    {
+      "name": "curve_enc",
+      "role": "encode each observed cycle curve",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc", "diagnostics.json$.summary.activation_health.curve_conv_last"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Gradients, updates, and activations are finite and healthy in this held-constant block."
+    },
+    {
+      "name": "state_proj",
+      "role": "project the remaining absolute-curve and fade state",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj", "diagnostics.json$.summary.activation_health.state_proj"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The reduced 34-to-48 projection remains connected, updating, and activation-healthy."
+    },
+    {
+      "name": "tcn",
+      "role": "model the masked causal degradation trajectory",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn", "diagnostics.json$.summary.padding_invariance"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The temporal block is healthy and padded-cycle output change is exactly zero."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite nonzero late gradients and updates provide no ablation-specific reason to alter it."
+    },
+    {
+      "name": "head",
+      "role": "produce the network EOL estimate before extrapolation fusion",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.head", "diagnostics.json$.summary.activation_health.head"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The held-constant head remains connected and healthy."
+    },
+    {
+      "name": "gate",
+      "role": "adaptively blend network and extrapolation estimates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.gate", "diagnostics.json$.summary.activation_health.gate_out"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The gate has finite nonzero late gradients and updates; this ablation does not test its removal."
+    },
+    {
+      "name": "ext_da",
+      "role": "scaled correction to extrapolation slope calibration",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_da", "diagnostics.json$.summary.branch_gradient_imbalance"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "It is connected and finite, but the saved report flags an exploding-gradient candidate caused by parameter-normalized ratios from zero initialization."
+    },
+    {
+      "name": "ext_dc",
+      "role": "scaled correction to extrapolation shift calibration",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_dc"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The parameter is finite, connected, and updating; no component-specific repair is supported here."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the generic screening floor is non-applicable. The gradient field is FAIL because diagnostics.json records overall_gradient_health=WARNING from calibration-scale and branch-imbalance ratios; all gradients and outputs remain finite and connected."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "STOP",
+    "summary": "Close the anchor attribution family: retain the locally recorded KEEP for NA-E012, but do not credit h-h_1 and omit it from the compact attributed configuration because the completed family misses the +0.008 credit threshold.",
+    "source_cause_id": "C1_ANCHOR_REDUNDANT",
+    "responsible_block": "anchor_difference"
+  }
+}

@@ -134,3 +134,13 @@ Raw experiment artifacts remain unchanged for reproducibility.
   vs ExtrapGate 0.1474 ± 0.0389, NaFadeNet 0.1690 ± 0.0420, CPMLP 0.1778 ± 0.0539. Promoted (gain 0.0387).
 - program.md §1 Phase-1 target (MAPE < 0.20, Acc@15 > 0.68, 3 splits, same checkpoint) is met.
 - Owed (architecture.md §5): matched 3-split ablations use_anchor=false, use_fade=false, fixed g = 0.12.
+
+## NA-E012..E020 — Attribution ablations of the parent (architecture.md §5), lead summary
+
+| Family | split 2021 / 42 / 2024 | 3-split MAPE | vs parent 0.1087 ± 0.0085 |
+|---|---|---|---|
+| − anchor (h − h_1) | 0.0854 / 0.1213 / 0.1154 | 0.1074 ± 0.0193 | −0.0013 → not credited (Codex confirmed) |
+| − fade inputs (r_d, r_c) | 0.0835 / 0.1897 / 0.1156 | 0.1296 ± 0.0545 | +0.0209 → credited (Codex pending) |
+| fixed gate g = 0.12 | 0.1046 / 0.1805 / 0.1541 | 0.1464 ± 0.0385 | +0.0377 → credited (Codex pending) |
+
+- The adaptive extrapolation gate is the largest contributor, then the explicit capacity-ratio inputs; the cycle-1 anchor adds nothing measurable.
