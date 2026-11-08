@@ -1,0 +1,161 @@
+
+===== NA-E021 START 2026-11-08 04:58:37 =====
+[physics] Calibrated lambda = 5.707178e-02 (rho=0.5, median_ratio=1.141436e-01, batch_ratios=[0.114144, 0.264006, 0.088438])
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=0.57s val_mape=0.147621 val_acc15=0.528333
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=0.91s val_mape=0.152573 val_acc15=0.431667
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.25s val_mape=0.139034 val_acc15=0.546667
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.60s val_mape=0.134663 val_acc15=0.548333
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=2.00s val_mape=0.128934 val_acc15=0.580000
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=2.34s val_mape=0.123667 val_acc15=0.651667
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.68s val_mape=0.113082 val_acc15=0.763333
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=3.03s val_mape=0.106521 val_acc15=0.791667
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=3.37s val_mape=0.104082 val_acc15=0.790000
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=3.72s val_mape=0.100966 val_acc15=0.796667
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=4.06s val_mape=0.081864 val_acc15=0.863333
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=4.41s val_mape=0.089395 val_acc15=0.816667
+epoch=13 epoch_steps=15/15 epoch_progress=13.000 steps=195 train_compute=4.75s val_mape=0.086171 val_acc15=0.808333
+epoch=14 epoch_steps=15/15 epoch_progress=14.000 steps=210 train_compute=5.08s val_mape=0.087065 val_acc15=0.801667
+epoch=15 epoch_steps=15/15 epoch_progress=15.000 steps=225 train_compute=5.43s val_mape=0.086347 val_acc15=0.821667
+epoch=16 epoch_steps=15/15 epoch_progress=16.000 steps=240 train_compute=5.76s val_mape=0.089263 val_acc15=0.810000
+{
+  "metrics": {
+    "mape": 0.08186352077658335,
+    "acc15": 0.8633333333333333,
+    "mae": 15.355308202107748,
+    "rmse": 19.229553810995302,
+    "prediction_diagnostics": {
+      "prediction_mean": 173.7353973388672,
+      "prediction_std": 17.9982967376709,
+      "prediction_min": 137.34963989257812,
+      "prediction_max": 238.86172485351562,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.8872809063902377,
+      "mean_signed_relative_error": -0.049589209258556366,
+      "relative_error_std": 0.0931120216846466,
+      "prediction_target_correlation": 0.6403924179079961,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.14491013924522897,
+        "acc15": 0.6666666666666666,
+        "mae": 24.394046274820962,
+        "rmse": 30.99528533875053,
+        "bias": 17.156776428222656,
+        "relative_bias": 0.10724721103906631,
+        "prediction_mean": 200.99009704589844,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.08169853176806027,
+        "acc15": 0.9444444444444444,
+        "mae": 15.205967034233941,
+        "rmse": 16.93437605787711,
+        "bias": -9.128447532653809,
+        "relative_bias": -0.0435231514275074,
+        "prediction_mean": 174.7048797607422,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.07109528081370363,
+        "acc15": 0.8866666666666667,
+        "mae": 13.771642557779948,
+        "rmse": 17.049581234587393,
+        "bias": -13.035608291625977,
+        "relative_bias": -0.06591392308473587,
+        "prediction_mean": 170.79771423339844,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.06593900845318629,
+        "acc15": 0.9733333333333334,
+        "mae": 12.768037516276042,
+        "rmse": 16.078033486655887,
+        "bias": -12.741446495056152,
+        "relative_bias": -0.0657912865281105,
+        "prediction_mean": 171.0918731689453,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.08343661908051575,
+        "acc15": 0.76,
+        "mae": 16.00035400390625,
+        "rmse": 19.327820291824086,
+        "bias": -16.000354766845703,
+        "relative_bias": -0.08343662321567535,
+        "prediction_mean": 167.8329620361328,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.08186352077658335,
+        "acc15": 0.8633333333333333,
+        "mae": 15.355308202107748,
+        "rmse": 19.229553810995302,
+        "bias": -10.097942352294922,
+        "relative_bias": -0.049589209258556366,
+        "prediction_mean": 173.7353973388672,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.08186352077658335,
+        "acc15": 0.8633333333333333,
+        "mae": 15.355308202107748,
+        "rmse": 19.229553810995302,
+        "bias": -10.097942352294922,
+        "relative_bias": -0.049589209258556366,
+        "prediction_mean": 173.7353973388672,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "physics_violation_rate": 0.48
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "loss",
+    "seed": 2021,
+    "training_compute_seconds": 5.762,
+    "validation_seconds": 3.851,
+    "wall_seconds": 24.586,
+    "num_steps": 240,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 41.649401,
+    "num_params": 39236,
+    "model_bytes_fp32": 156944,
+    "peak_device_memory_bytes": 1427459584,
+    "best_epoch": 11,
+    "minimum_validation_mape": 0.08186352077658335,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 16,
+    "last_epoch": 16,
+    "last_epoch_steps": 15,
+    "epoch_progress": 16.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Loss = Relative Huber(0.15) + lambda * P2, P2 = mean ReLU(f(x_tilde) - sg[f(x)]), x_tilde: discharge voltage channel of observed cycles minus beta * r_n, r_n = clip((n-10)/90, 0, 1), beta ~ U(0, beta_max), beta_max = P90 of the training-cell drop in mean normalised discharge voltage cycle 10 -> 100; lambda = 0.5 * median grad-norm ratio on 3 fixed training batches (loss.md \u00a75.2). Model unchanged (NA-E009 config).",
+    "device": "cuda"
+  }
+}
+===== NA-E021 COMPLETE =====

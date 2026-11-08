@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E021",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does the label-free P2 voltage-sag what-if loss (Relative Huber 0.15 + lambda*P2, rho 0.5) cut the P2 held-out violation rate by >= 50% vs NA-E009 (0.836) on split 2021 without making MAPE worse (reject: MAPE > 0.1049, BALANCE_FAIL, or violation fall < 50%)?",
+    "outcome": "INCONCLUSIVE",
+    "conclusion": "Independent recomputation from the 600 selected-checkpoint predictions (epoch 11 of 16, early stop) gives MAPE 0.081864, Acc@15 0.8633, RMSE 19.230, bias -10.10, prediction/target std 18.00/20.28, vs NA-E009 MAPE 0.099874, Acc@15 0.7433, RMSE 22.528, bias -15.91 (delta MAPE -0.0180). Per-cell MAPE E021 vs E009: 1-6-59 0.0660 vs 0.0978; 3-2-55 0.1288 vs 0.1567; 3-4-53 0.0741 vs 0.0937; 4-2-47 0.1218 vs 0.1473; 4-6-43 0.0654 vs 0.0533; 5-5-35 0.0352 vs 0.0504 (5/6 better). Prefix bands: 01-10 0.1449 vs 0.1221 (worse, bias +17.2 cycles), 11-25 0.0817 vs 0.0936, 26-50 0.0711 vs 0.0928, 51-75 0.0659 vs 0.0932, 76-100 0.0834 vs 0.1085. Balance PASS (median R 0.153, only 2 samples: steps 1 and 61). Recorded held-out P2 violation (CUDA, selected checkpoint) 0.480 = 42.6% fall vs 0.836, which fails the pre-registered >= 50% rule, so the decision is DISCARD. Local re-run of evaluate_checkpoint_violation on the same checkpoint (CPU/MPS) gives 0.387 (53.7% fall) while the parent reproduces at 0.836: the metric is device-dependent because every what-if output shift is tiny (E021 max 0.0013 cycles, median |d| 1e-4 cycles; E009 max 0.0049, mean +0.0010 cycles). The loss shrank the mean positive sag response about 22x (1.0e-3 -> 4.6e-5 cycles) toward a tie rather than flipping its sign. In training the P2 term was dominated by dropout noise (separate train-mode passes for f(x) and f(x_tilde): relu mean 0.042 at beta=0 vs 0.048 with the what-if; eval-mode signal 8e-7 std units), and the proposal set physics_anchor_gradient='both', so f(x) was NOT stop-gradiented, contrary to loss.md 4.6. The MAPE gain is therefore not attributable to the P2 physics rule; it is plausibly a dropout-consistency regularization effect. The 5-epoch MPS smoke violation of 0.0017 came from a different checkpoint/device and is not comparable; per-epoch violation was not logged.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+      "record.json$.metrics",
+      "record.json$.metrics.physics_violation_rate",
+      "record.json$.proposal.training.physics_anchor_gradient",
+      "diagnostics.json$.physics_validation",
+      "diagnostics.json$.checkpoint_selection",
+      "diagnostics.json$.summary.loss_balance",
+      "diagnostics.json$.epoch_history[*].loss_balance",
+      "experiments/NA-E009/validation_predictions.npz",
+      "train.evaluate_checkpoint_violation('NA-E021'|'NA-E009', physics_type='whatif_vsag_p2') local re-run: 0.3872 / 0.8356"
+    ]
+  },
+  "main_symptom": "Accuracy improved strongly (MAPE 0.0819 vs 0.0999, Acc@15 0.863 vs 0.743) but the held-out P2 violation fell only to 0.480 (42.6%, short of the 50% rule); the violation sits near 0.4-0.5 at every beta multiplier (0.477/0.452/0.512) because the sag response is at a numerical tie (|f(x_tilde)-f(x)| <= 0.0013 cycles), and the recomputed rate changes with device (0.387 locally).",
+  "causes": [
+    {
+      "id": "C1_DROPOUT_NOISE_DOMINATES_P2",
+      "class": "training signal swamped by stochastic-forward noise (implementation)",
+      "supporting_evidence": [
+        "diagnostics.json$.epoch_history[*].loss_balance.raw_physics_loss_mean",
+        "diagnostics.json$.summary.loss_balance.samples[*].active_fraction",
+        "record.json$.proposal.model.dropout",
+        "local probe on a training batch with the E021 checkpoint: train-mode relu(f2-f1) at beta=0 = 0.0416 (active 0.52) vs with what-if 0.0482 (active 0.58); eval-mode what-if relu mean 8.2e-7"
+      ],
+      "contradicting_evidence": [
+        "diagnostics.json$.physics_validation.physics_violation_rate"
+      ],
+      "interpretation": "f(x) and f(x_tilde) are two separate train-mode forwards with independent dropout masks. The dropout difference (~0.04 std units, ~2 cycles) is ~5e4x larger than the eval-mode sag effect, so the hinge is active on ~50% of samples by chance and raw P2 plateaus at ~0.039 from epoch 9 onward. With physics_anchor_gradient='both' its gradient also flows into f(x), so the term acts as a two-branch dropout-consistency regularizer. This explains both the MAPE gain (regularization, cosine +0.81 with the main loss at step 61) and the weak violation change. The violation did drop from 0.836, which shows some real effect on the sag direction.",
+      "missing_evidence": [
+        "Matched control with the same term at beta=0 (pure consistency) or the C-flip control",
+        "Run with physics_anchor_gradient='stop' and the same dropout mask for f(x) and f(x_tilde)",
+        "Per-epoch held-out violation trajectory"
+      ]
+    },
+    {
+      "id": "C2_WHATIF_RANGE_BELOW_RESOLUTION",
+      "class": "what-if perturbation too small for a meaningful sign test",
+      "supporting_evidence": [
+        "diagnostics.json$.physics_validation.by_multiplier",
+        "compute_bounds_per_domain(whatif_vsag_p2) beta_max = 0.003734 (normalised V)",
+        "local probe: E009 held-out what-if shift max 0.0049 cycles, mean +0.0010; E021 max 0.0013, median |d| 9.5e-5 cycles"
+      ],
+      "contradicting_evidence": [
+        "experiments/NA-E009 P2 violation 0.836 reproduced exactly locally (0.8356), so the parent's positive sign is systematic, not noise"
+      ],
+      "interpretation": "beta_max (P90 of the training 10->100 mean-discharge-V drop) moves predictions by thousandths of a cycle. A one-sided hinge with margin 0 can only drive this response to ~0, where the sign (and hence the violation rate) is set by float rounding and device kernels: 0.480 on CUDA vs 0.387 on CPU/MPS, nearly flat over the 0.25/0.5/1.0 multipliers. The >= 50% rule cannot be judged robustly at this scale.",
+      "missing_evidence": [
+        "Violation rate with a small tolerance (e.g. counted only when f(x_tilde)-f(x) > 1e-3 cycles)",
+        "Parent and candidate violation at a wider sag range"
+      ]
+    },
+    {
+      "id": "C3_LONGER_TRAINING_SINGLE_SPLIT",
+      "class": "checkpoint/split variation",
+      "supporting_evidence": [
+        "diagnostics.json$.checkpoint_selection.selected_epoch",
+        "experiments/NA-E009/record.json$.result.best_epoch",
+        "diagnostics.json$.epoch_history[*].validation.mape"
+      ],
+      "contradicting_evidence": [
+        "validation_predictions.npz::cell_id (5/6 cells improve, not one cell)"
+      ],
+      "interpretation": "E021 selected epoch 11 (MAPE jumps 0.1010 -> 0.0819 in one epoch) vs parent epoch 7. On six validation cells and one split, part of the -0.018 gain may be checkpoint luck; the AGENTS.md rule requires the 3-split mean.",
+      "missing_evidence": [
+        "Splits 42 and 2024"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_DROPOUT_NOISE_DOMINATES_P2",
+  "layers": [
+    {
+      "name": "curve_enc",
+      "role": "encode each observed cycle curve (receives the sagged voltage channel)",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY, late near-zero fraction 0.0; model unchanged by this loss experiment."
+    },
+    {
+      "name": "ext_da",
+      "role": "scaled correction to extrapolation slope calibration",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_da", "diagnostics.json$.summary.branch_gradient_imbalance"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "WARNING: branch imbalance ext_da/tcn_norm 3.2e6 (> 1e3), same parent-family scale artefact; finite and connected."
+    },
+    {
+      "name": "ext_dc",
+      "role": "scaled correction to extrapolation shift calibration",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_dc"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY, late near-zero fraction 0.0."
+    },
+    {
+      "name": "gate",
+      "role": "blend network and extrapolation estimates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.gate"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY; near-zero gradient fraction 0.82 at the first sample falls to 0.0 late, so not persistently dead."
+    },
+    {
+      "name": "head",
+      "role": "produce the network EOL estimate",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.head"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY, late near-zero fraction 0.0."
+    },
+    {
+      "name": "state_proj",
+      "role": "project curve and fade-state features",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY, late near-zero fraction 0.0."
+    },
+    {
+      "name": "tcn",
+      "role": "model the masked causal degradation trajectory",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY, late near-zero fraction 0.0."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY, late near-zero fraction 0.0; smallest block in the imbalance ratio."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the screening floor does not apply. Gradient gate FAIL because diagnostics.json overall_gradient_health=WARNING (ext_da/tcn_norm imbalance 3.2e6, as in the parent family); all values finite, padding INVARIANT, no non-finite steps."
+    }
+  },
+  "decision": "DISCARD",
+  "next_action": {
+    "type": "REPAIR",
+    "summary": "Pre-registered rule: recorded P2 violation 0.480 is a 42.6% fall (< 50%), so DISCARD, even though MAPE (0.0819 <= 0.1049) and balance (PASS) are fine. Before any A2 knob change, make the run match loss.md 4.6: physics_anchor_gradient='stop' (sg[f(x)]) and evaluate f(x) and f(x_tilde) under the same dropout mask (or the what-if branch in eval mode), plus a beta=0 consistency control to test whether the MAPE gain is regularization. Also report the held-out violation with a small tolerance and on one fixed device. The registered A2 follow-up after that: widen the what-if range (beta_max) only, keeping rho 0.5 and margin 0. Judge on all 3 splits.",
+    "source_cause_id": "C1_DROPOUT_NOISE_DOMINATES_P2",
+    "responsible_block": "objective (whatif_vsag_p2 term)"
+  }
+}

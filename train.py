@@ -5691,6 +5691,26 @@ def sample_whatif_param(domains, bounds_by_domain, rng, physics_type="whatif_fad
         raise ValueError(f"Unknown physics_type for sampling: {physics_type}")
 
 
+import contextlib as _contextlib
+
+
+@_contextlib.contextmanager
+def dropout_off(model, enabled=True):
+    """v5 NA-E022: run the physics what-if branch with dropout disabled (same deterministic network for
+    f(x) and f(x_tilde)), so the one-sided term measures only the what-if, not dropout-mask noise."""
+    if not enabled:
+        yield
+        return
+    drops = [m for m in model.modules() if isinstance(m, nn.Dropout) and m.training]
+    for m in drops:
+        m.eval()
+    try:
+        yield
+    finally:
+        for m in drops:
+            m.train()
+
+
 def whatif_loss(
     model,
     curves,
@@ -5707,6 +5727,7 @@ def whatif_loss(
     mu_over_s=None,
     unsigned=False,
     drift_log_mu_over_s=None,
+    dropout_matched=False,
 ):
     """
     Computes what-if physics loss:
@@ -5732,7 +5753,13 @@ def whatif_loss(
     base_type = "whatif_fade_p0" if physics_type == "whatif_fade_p0b" else physics_type
     param = sample_whatif_param(domains, bounds_by_domain, rng, physics_type=base_type).to(curves.device)
     x_tilde = apply_whatif(curves, masks, param, physics_type=base_type, prefix_lengths=prefix_lengths)
-    f_tilde = model(x_tilde, masks)
+    if dropout_matched:
+        with dropout_off(model):
+            with torch.no_grad():
+                f_x = model(curves, masks)          # sg[f(x)], same (dropout-free) network as f(x_tilde)
+            f_tilde = model(x_tilde, masks)
+    else:
+        f_tilde = model(x_tilde, masks)
 
     if physics_type == "whatif_fade_p0_flip":
         diff = f_x - f_tilde
@@ -5961,7 +5988,13 @@ def calibrate_whatif_lambda(
         else:
             param = sample_whatif_param(domains, bounds_by_domain, physics_rng, physics_type=physics_type).to(device)
             x_tilde = apply_whatif(curves, masks, param, physics_type=physics_type, prefix_lengths=prefix_lengths)
-            f_tilde = model(x_tilde, masks)
+            if config.get("physics_dropout_matched", False):
+                with dropout_off(model):
+                    with torch.no_grad():
+                        f_x = model(curves, masks)
+                    f_tilde = model(x_tilde, masks)
+            else:
+                f_tilde = model(x_tilde, masks)
         raw_diff = f_tilde - f_x
         if physics_type == "prefix_drift" and config.get("physics_drift_space", "standard") == "log" and scaler is not None:
             raw_diff = log_eol_ratio(f_tilde, f_x, float(scaler.mean) / float(scaler.scale))
@@ -6924,6 +6957,7 @@ def run(experiment_id, proposal_path):
                         mu_over_s=(float(scaler.mean) / float(scaler.scale)) if physics_type == "whatif_fade_p0b" else None,
                         drift_log_mu_over_s=((float(scaler.mean) / float(scaler.scale))
                                              if (physics_type == "prefix_drift" and config.get("physics_drift_space", "standard") == "log") else None),
+                        dropout_matched=bool(config.get("physics_dropout_matched", False)),
                     )
                     weighted_phys = physics_weight * phys_loss
                     if (

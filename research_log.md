@@ -146,3 +146,11 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - The adaptive extrapolation gate is the largest contributor, then the explicit capacity-ratio inputs; the cycle-1 anchor adds nothing measurable.
 - Reviewer caveat (fade family): the +0.0209 credit rests mainly on split 42 (+0.0727; split 2021 −0.0164). Gate credit holds on all three splits.
 - Phase 1 CLOSED (target met) on user go 2026-11-08; frozen model = NA-E009 config. Phase 2 ACTIVE.
+
+## NA-E021 — Phase 2: P2 voltage-sag what-if (rho 0.5), Split 2021
+
+- VALID, DISCARD (pre-registered rule). MAPE 0.0819 (parent 0.0999), Acc@15 0.863, RMSE 19.2, balance PASS (median R 0.153);
+  P2 held-out violation 0.48 vs 0.836 (-42.6%, needs -50%).
+- Independent reviewer: physics_anchor_gradient='both' (no sg on f(x)) and independent dropout masks for f(x) / f(x_tilde)
+  — the term was mostly dropout-consistency noise (hinge 0.04-0.06 already at beta = 0). Gain not creditable to physics.
+- Repair: `physics_dropout_matched` (dropout-free what-if branch, anchor stop) -> NA-E022.
