@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E023",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does the registered prefix-drift term (loss.md 4.7 row: lambda*mean|f(x_trunc)-f(x)|, j = floor(u*i), u ~ U(0.5,1), anchor 'both', both views dropout-free, rho 0.5) lower the held-out relative drift of NA-E009 by >= 50% on split 2021 without MAPE > 0.1049, BALANCE_FAIL, or a 76-100 prefix-band MAPE regression > 0.01?",
+    "outcome": "REFUTED",
+    "conclusion": "Reviewer recomputation from the 600 selected-checkpoint predictions (best epoch 9 of 13, early stop; minimum-MAPE epoch 8 at 0.1008, inside the 0.005 tolerance): MAPE 0.1019, Acc@15 0.705, RMSE 24.04, bias -16.19 cycles, prediction/target std ratio 1.03, vs NA-E009 0.0999 / 0.743 / 22.53 / -15.91 / 0.75. All of the lead's numbers match. Pre-registered rule: MAPE 0.1019 <= 0.1049 PASS; loss_balance PASS (median R 0.350, samples 0.368 and 0.332, cosine +0.38 then -0.94, active fraction 0.30/0.27, lambda 0.0181); 76-100 band MAPE 0.118456 vs 0.108492 = +0.009963, which is under the 0.01 guard by only 0.00004 (PASS, barely); held-out relative drift (tools/posthoc_drift.py, BL_SPLIT=2021, eval mode, seed 0) 0.0226 vs 0.0264 = -14.4%, far short of the required -50% (<= 0.0132). The run fails the drift criterion, so the decision is DISCARD. Band MAPE (candidate/parent): 1-10 0.0954/0.1221, 11-25 0.0773/0.0936, 26-50 0.0979/0.0928, 51-75 0.1068/0.0932, 76-100 0.1185/0.1085. Band drift: 1-10 0.032/0.086 (-63%), 11-25 0.038/0.049, 26-50 0.019/0.017, 51-75 0.014/0.012, 76-100 0.022/0.014 (+60%). The term fixed the short prefixes but made long-prefix predictions less consistent and less accurate.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error,signed_relative_error}",
+      "experiments/NA-E009/validation_predictions.npz",
+      "record.json$.metrics",
+      "record.json$.result.best_epoch",
+      "diagnostics.json$.summary.loss_balance",
+      "diagnostics.json$.epoch_history[*]",
+      "train.log (Calibrated lambda = 1.810135e-02, median_ratio 3.62e-02)",
+      "tools/posthoc_drift.py NA-E023 / NA-E009 (BL_SPLIT=2021): 0.0226 vs 0.0264"
+    ]
+  },
+  "main_symptom": "Drift fell only 14.4% (0.0264 -> 0.0226). It fell 63% in the 1-10 band but rose 60% in the 76-100 band, and MAPE got worse from prefix 26 onward (+0.005 / +0.014 / +0.010), while 1-10 and 11-25 improved (-0.027 / -0.016).",
+  "causes": [
+    {
+      "id": "C1_SYMMETRIC_TERM_MOVES_LONG_VIEW",
+      "class": "objective mechanism: two-sided drift sends gradient into the informed long-prefix prediction",
+      "supporting_evidence": [
+        "validation_predictions.npz::{prediction,target,prefix_length}: band MAPE 26-50 +0.0051, 51-75 +0.0136, 76-100 +0.0100 vs NA-E009",
+        "tools/posthoc_drift.py bands: 76-100 drift 0.0218 vs 0.0136 (+60%), 26-50 and 51-75 also up",
+        "record.json$.metrics.prediction_diagnostics.prediction_to_target_std_ratio (1.03 vs 0.75)",
+        "diagnostics.json$.summary.loss_balance.samples[1].gradient_cosine (-0.94)"
+      ],
+      "contradicting_evidence": [
+        "Signed error by band does not show long predictions moving up toward the short ones: 1-10 moved +0.040 -> -0.026 (short pulled down toward long), 76-100 moved -0.109 -> -0.116. The long-band damage looks like extra variance (std ratio 0.75 -> 1.03), not a level pull toward short-prefix values."
+      ],
+      "interpretation": "With anchor 'both', |f(x_trunc)-f(x)| sends equal gradient to the long view f(x). The long-prefix prediction has more ageing evidence and should not move. Here it absorbs part of the correction, and with the main loss opposing the term (cosine -0.94) its errors spread out more. This explains why short prefixes got better while long prefixes and long-view drift got worse. The mechanism is the extra freedom of the long view, not a pure mean pull.",
+      "missing_evidence": [
+        "Splits 42/2024",
+        "Per-pair breakdown of which view moved during training (gradient share between f(x) and f(x_trunc))"
+      ]
+    },
+    {
+      "id": "C2_TERM_TOO_WEAK_FOR_50PCT",
+      "class": "balance strength: rho 0.5 is too small for the drift target",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.loss_balance.median_R (0.35, mid-band)",
+        "diagnostics.json$.summary.physics_balance.weighted_to_main_loss_ratio (median 0.048)",
+        "train.log lambda 0.0181",
+        "diagnostics.json$.epoch_history[*] (val MAPE 0.152 -> 0.101 by epoch 8, then 0.121-0.147; stop at epoch 13)"
+      ],
+      "contradicting_evidence": [
+        "The 1-10 band drift already fell 63%, so the term is strong enough where it acts; raising rho would also scale up C1's long-view damage (51-75 already +0.0136)"
+      ],
+      "interpretation": "A larger lambda could push total drift further down, but the rise in 76-100 drift and long-band MAPE shows that the extra strength would go partly into the wrong view. So a stronger symmetric term is not the right repair.",
+      "missing_evidence": [
+        "A rho sweep (not allowed as a multi-change; one value per experiment)"
+      ]
+    },
+    {
+      "id": "C3_SINGLE_SPLIT_NOISE",
+      "class": "evaluation variance: 6 validation cells",
+      "supporting_evidence": [
+        "validation_predictions.npz::cell_id (6 cells, 600 samples)",
+        "diagnostics.json$.epoch_history[*] (selected epoch 9; epoch 8 0.1008; MAPE swings 0.10-0.15 between epochs)"
+      ],
+      "contradicting_evidence": [
+        "The band pattern (short better, long worse) is monotonic and matches the drift bands, which noise is unlikely to produce"
+      ],
+      "interpretation": "With 6 cells one cell can move a band by ~0.01, so the 76-100 guard margin (0.00004) carries no information. But the drift shortfall (-14% vs -50%) is too large to be noise.",
+      "missing_evidence": [
+        "Splits 42/2024"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_SYMMETRIC_TERM_MOVES_LONG_VIEW",
+  "layers": [
+    {"name": "curve_enc", "role": "encode each observed cycle curve", "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc", "tools/layer_report.py NA-E023"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY / OK."},
+    {"name": "ext_da", "role": "scaled correction to extrapolation slope calibration", "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_da", "tools/layer_report.py NA-E023"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "layer_report EXPLODING / EXPLODING_GRADIENT_CANDIDATE come from zero-initialised gate_param_scale=50 ratios (same as NA-E009). Grads are finite (median 0.126). Keep the carried audit item: fix the ratio normalisation in the diagnostic, not the model."},
+    {"name": "ext_dc", "role": "scaled correction to extrapolation shift calibration", "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_dc", "tools/layer_report.py NA-E023"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "Same zero-init ratio artefact as ext_da (layer_report EXPLODING). The audit item is carried from NA-E009."},
+    {"name": "gate", "role": "blend network and extrapolation estimates", "evidence_paths": ["diagnostics.json$.summary.layer_health.gate", "tools/layer_report.py NA-E023"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY / OK."},
+    {"name": "head", "role": "produce the network EOL estimate", "evidence_paths": ["diagnostics.json$.summary.layer_health.head"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY / OK."},
+    {"name": "state_proj", "role": "project curve and fade-state features", "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY / OK."},
+    {"name": "tcn", "role": "model the masked causal degradation trajectory", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY / OK."},
+    {"name": "tcn_norm", "role": "normalize temporal residual updates", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm", "tools/layer_report.py NA-E023"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "layer_report WEAK (g/p 3.1e-4), not dead (near-zero fraction 0). This is the smallest block in the parent-family imbalance ratio. Audit it with the ext_da/ext_dc ratio item; no model change is justified by this run."}
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the screen floor does not apply. Gradient FAIL because overall_gradient_health=WARNING: the ext_da EXPLODING_GRADIENT_CANDIDATE from the zero-init ratio artefact, and branch imbalance 2.7e6 (also in NA-E009). All values are finite, padding INVARIANT, no block dead. Physics balance HEALTHY and loss_balance PASS, so the run stays VALID."
+    }
+  },
+  "decision": "DISCARD",
+  "next_action": {
+    "type": "REPAIR",
+    "summary": "DISCARD (pre-registered rule: drift -14.4% < -50%; 76-100 guard +0.00996 passes only by 0.00004). The direction is promising (1-10 MAPE -0.027, 11-25 -0.016, overall MAPE within +0.002, balance in band), so it gets an evidence-led follow-up (program.md 7, A2; follow-up 1 of <= 3). Run NA-E024: the already-registered one-sided variant (loss.md 4.7 row 'prefix_drift + physics_anchor_gradient=\"stop\"': lambda*mean|f(x_trunc) - sg[f(x)]|, u ~ U(0.5,1), dropout-free views, rho 0.5, split 2021). Only the short view is pulled toward the long view, which targets C1. Keep the same four-part reject rule. Before running: (1) the train.py calibration call (~line 5648) forces anchor 'both' for prefix_drift; decide and record whether lambda is calibrated on the stop form, as section 5.2 requires; (2) add a v5 note to the 4.7 row, because v4 R4-E082 lost the bulk gain with this form (lambda 0.061). Do not raise rho: it would scale up the long-view damage.",
+    "source_cause_id": "C1_SYMMETRIC_TERM_MOVES_LONG_VIEW",
+    "responsible_block": "objective (prefix_drift term, anchor gradient)"
+  }
+}

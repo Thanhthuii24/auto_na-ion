@@ -5992,6 +5992,8 @@ def calibrate_whatif_lambda(
             if config.get("physics_dropout_matched", False):
                 with dropout_off(model):
                     f_x = model(curves, masks)
+                    if config.get("physics_anchor_gradient", "stop") != "both":
+                        f_x = f_x.detach()  # NA-E024: calibrate lambda on the trained one-way form (sg on the full prefix)
                     f_tilde = model(x_tilde, masks_t)
             else:
                 f_tilde = model(x_tilde, masks_t)

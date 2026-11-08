@@ -163,3 +163,9 @@ Raw experiment artifacts remain unchanged for reproducibility.
   test on near-zero changes (0 violations above 1e-3 cycles). With sg[f(x)] the term becomes a constant "predict shorter" push
   (cos with main-loss gradient -0.996), producing the negative bias. In E021 the 'both' anchor cancelled this push.
 - P2 closed (program.md §7: no physics-creditable signal after the first test + one repair).
+
+## NA-E023 — Two-sided prefix-drift (dropout-free, rho 0.5), Split 2021
+
+- VALID, DISCARD. MAPE 0.1019 (parent 0.0999), Acc@15 0.705, balance PASS (R 0.35; cos +0.38 -> -0.94).
+- Post-hoc drift 0.0226 vs 0.0264 (-14%, needs -50%). Bands: 1-10 MAPE 0.122 -> 0.095, drift -63%; 51-75 +0.014; 76-100 +0.010, drift +60%.
+- Reviewer: the full-prefix view receives drift gradient it should not get -> next: registered one-way form (sg on the full prefix), NA-E024.
