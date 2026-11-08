@@ -1,0 +1,159 @@
+
+===== NA-E012 START 2026-11-08 04:02:45 =====
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=0.99s val_mape=0.111231 val_acc15=0.780000
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=1.18s val_mape=0.154003 val_acc15=0.461667
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.37s val_mape=0.156075 val_acc15=0.366667
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.56s val_mape=0.133124 val_acc15=0.606667
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=1.78s val_mape=0.121746 val_acc15=0.675000
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=1.97s val_mape=0.118112 val_acc15=0.711667
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.16s val_mape=0.103641 val_acc15=0.775000
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=2.34s val_mape=0.090951 val_acc15=0.808333
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=2.53s val_mape=0.086656 val_acc15=0.816667
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=2.72s val_mape=0.095227 val_acc15=0.790000
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=2.90s val_mape=0.085370 val_acc15=0.828333
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=3.09s val_mape=0.087394 val_acc15=0.823333
+epoch=13 epoch_steps=15/15 epoch_progress=13.000 steps=195 train_compute=3.28s val_mape=0.090976 val_acc15=0.816667
+epoch=14 epoch_steps=15/15 epoch_progress=14.000 steps=210 train_compute=3.46s val_mape=0.092140 val_acc15=0.836667
+epoch=15 epoch_steps=15/15 epoch_progress=15.000 steps=225 train_compute=3.65s val_mape=0.092580 val_acc15=0.846667
+epoch=16 epoch_steps=15/15 epoch_progress=16.000 steps=240 train_compute=3.84s val_mape=0.096028 val_acc15=0.821667
+{
+  "metrics": {
+    "mape": 0.08537012402086722,
+    "acc15": 0.8283333333333334,
+    "mae": 15.65919324239095,
+    "rmse": 20.58470441509102,
+    "prediction_diagnostics": {
+      "prediction_mean": 175.9515380859375,
+      "prediction_std": 23.967836380004883,
+      "prediction_min": 128.3001251220703,
+      "prediction_max": 246.1759796142578,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 1.1815675614989132,
+      "mean_signed_relative_error": -0.04024267941713333,
+      "relative_error_std": 0.10631155967712402,
+      "prediction_target_correlation": 0.6420660107883376,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.15385969453180823,
+        "acc15": 0.6166666666666667,
+        "mae": 26.392989603678384,
+        "rmse": 34.05463499379254,
+        "bias": 18.50528907775879,
+        "relative_bias": 0.11324609816074371,
+        "prediction_mean": 202.33863830566406,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.05029119599009815,
+        "acc15": 0.9666666666666667,
+        "mae": 9.22678731282552,
+        "rmse": 11.697780559229344,
+        "bias": -0.6184780597686768,
+        "relative_bias": 0.0002742767392192036,
+        "prediction_mean": 183.21485900878906,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.06141208140571511,
+        "acc15": 0.9666666666666667,
+        "mae": 11.57464111328125,
+        "rmse": 14.815558565501005,
+        "bias": -6.9997639656066895,
+        "relative_bias": -0.03653432056307793,
+        "prediction_mean": 176.8335723876953,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.08220753735362911,
+        "acc15": 0.8533333333333334,
+        "mae": 15.164732564290365,
+        "rmse": 18.436617459434018,
+        "bias": -11.829570770263672,
+        "relative_bias": -0.06414402276277542,
+        "prediction_mean": 172.00375366210938,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.10614228191734246,
+        "acc15": 0.6666666666666666,
+        "mae": 19.804131062825522,
+        "rmse": 24.280042764420077,
+        "bias": -19.728910446166992,
+        "relative_bias": -0.10575538873672485,
+        "prediction_mean": 164.10443115234375,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.08537012402086722,
+        "acc15": 0.8283333333333334,
+        "mae": 15.65919324239095,
+        "rmse": 20.58470441509102,
+        "bias": -7.881803512573242,
+        "relative_bias": -0.04024267941713333,
+        "prediction_mean": 175.9515380859375,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.08537012402086722,
+        "acc15": 0.8283333333333334,
+        "mae": 15.65919324239095,
+        "rmse": 20.58470441509102,
+        "bias": -7.881803512573242,
+        "relative_bias": -0.04024267941713333,
+        "prediction_mean": 175.9515380859375,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "ablation",
+    "seed": 2021,
+    "training_compute_seconds": 3.837,
+    "validation_seconds": 3.623,
+    "wall_seconds": 19.513,
+    "num_steps": 240,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 62.554715,
+    "num_params": 37700,
+    "model_bytes_fp32": 150800,
+    "peak_device_memory_bytes": 804877824,
+    "best_epoch": 11,
+    "minimum_validation_mape": 0.08537012402086722,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 16,
+    "last_epoch": 16,
+    "last_epoch_steps": 15,
+    "epoch_progress": 16.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Parent NA-E009 config with use_anchor=False: no cycle-1 anchor difference (h - h_1 removed from the state).",
+    "device": "cuda"
+  }
+}
+===== NA-E012 COMPLETE =====
