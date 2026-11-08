@@ -1,0 +1,210 @@
+{
+  "proposal": {
+    "id": "NA-E009",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "architecture",
+    "model": {
+      "display_name": "NaFadeNet+ExtrapGate(reparam)",
+      "variant": "na_fade_net",
+      "curve_channels": 32,
+      "d_model": 48,
+      "dilations": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "dropout": 0.1,
+      "fade_scale": 10.0,
+      "use_anchor": true,
+      "use_fade": true,
+      "extrap_gate": true,
+      "extrap_window": 20,
+      "extrap_threshold": 0.8,
+      "extrap_cap": 600.0,
+      "gate_param_scale": 50.0
+    },
+    "reference_experiment": "NA-E006",
+    "observation": "Parent NaFadeNet+ExtrapGate 3-split MAPE 0.1474 \u00b1 0.0389. On split 2021 the learned gate never left its init (mean g 0.119-0.120 in every prefix band; a, c unchanged) because Adam moves each raw parameter by about lr = 5e-5 per step and a run has only ~180 steps, so the gate cannot express the prefix dependence the extrapolation needs (extrapolation MAPE 2.5-4.7 at prefixes 1-10 but 0.04-0.11 at 51-100).",
+    "primary_hypothesis": "Re-parameterising only the gate and the extrapolation calibration (g = sigmoid(-2 + s*MLP), a = 2 + s*da, c = -3.6 + s*dc, s = 50, zero-init so the start equals NA-E006) lets these 99 head parameters move about 50x further per Adam step, so g learns to rise with prefix length, which lowers late-prefix MAPE without hurting early prefixes.",
+    "question_inherited": "Is the fixed-blend behaviour of NA-E006 a gate-learning-speed limitation?",
+    "unresolved_from_reference": "Gate stuck at init; late-prefix MAPE 0.10-0.12 on split 2021 while the extrapolation alone reaches 0.04-0.05 there.",
+    "why_this_experiment": "A2 follow-up 2 of the active direction (Head). Codex marked the gate REPAIR in NA-E006. Optimizer and lr stay locked; only the parameterisation of the gate block changes.",
+    "modification": "gate_param_scale = 50 on the NA-E006 head; everything else identical. Same parameter count (39,236).",
+    "changed_components": "Gate parameterisation only.",
+    "held_constant_components": "NaFadeNet body, extrapolation features, split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+    "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "MAPE/RMSE/Acc@15 vs NA-E006; gate mean per prefix band; a, c movement; per-cell errors.",
+    "rejection_condition": "Screen split 2021: DISCARD if MAPE >= 0.1053 (no gain over NA-E006) or UNHEALTHY or the gate still flat (band means within 0.02). Otherwise confirm on 42/2024; KEEP if the 3-split mean beats the parent 0.1474 by >= 0.008.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; NaFadeNet block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 300
+    },
+    "training": {
+      "seed": 2021,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    },
+    "architecture_addendum": {
+      "responsible_stage": "Head",
+      "mechanism": "reparameterised (scaled) gate logit and extrapolation calibration so the gate can adapt under the locked optimizer",
+      "shapes": "identical to NA-E006: feats [B,4] -> gate MLP -> logit [B]; g = sigmoid(-2 + 50*logit) [B]; z_ext [B]; y = (1-g)*y_net + g*z_ext [B]",
+      "mask_path": "unchanged from NA-E006 (masked last-20 fit, est clamped to >= n+1); unit test: padded-cycle change -> output diff 0.0; start output equals NA-E006 exactly (diff 0.0).",
+      "expected_evidence": "vs NA-E006 split 2021 (MAPE 0.1053, RMSE 24.0, Acc@15 0.687; DB-MAPE = MAPE): mean g by prefix band increasing from 1-10 to 76-100, lower prefix 51-100 MAPE, overall MAPE lower."
+    }
+  },
+  "metrics": {
+    "mape": 0.09987402903754722,
+    "acc15": 0.7433333333333333,
+    "mae": 18.959871393839517,
+    "rmse": 22.52817380593394,
+    "prediction_diagnostics": {
+      "prediction_mean": 167.92578125,
+      "prediction_std": 15.207902908325195,
+      "prediction_min": 136.97891235351562,
+      "prediction_max": 219.10289001464844,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.7497199359176521,
+      "mean_signed_relative_error": -0.08029354363679886,
+      "relative_error_std": 0.08790063112974167,
+      "prediction_target_correlation": 0.6293321844418149,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.12207882040161945,
+        "acc15": 0.75,
+        "mae": 20.67317835489909,
+        "rmse": 25.709628161804446,
+        "bias": 4.847209453582764,
+        "relative_bias": 0.039832599461078644,
+        "prediction_mean": 188.68055725097656,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.09362352111646344,
+        "acc15": 0.9111111111111111,
+        "mae": 17.755421278211806,
+        "rmse": 20.133302002811657,
+        "bias": -14.897708892822266,
+        "relative_bias": -0.07439060509204865,
+        "prediction_mean": 168.9356231689453,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.09281548453072683,
+        "acc15": 0.7333333333333333,
+        "mae": 18.04831827799479,
+        "rmse": 21.713351476736154,
+        "bias": -17.761812210083008,
+        "relative_bias": -0.09079783409833908,
+        "prediction_mean": 166.071533203125,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.0931825980104121,
+        "acc15": 0.7266666666666667,
+        "mae": 18.020513916015624,
+        "rmse": 21.523099127864548,
+        "bias": -18.0205135345459,
+        "relative_bias": -0.09318260103464127,
+        "prediction_mean": 165.81280517578125,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.10849239277852413,
+        "acc15": 0.6666666666666666,
+        "mae": 20.848129272460938,
+        "rmse": 24.24370289151716,
+        "bias": -20.848127365112305,
+        "relative_bias": -0.1084923967719078,
+        "prediction_mean": 162.98521423339844,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.09987402903754722,
+        "acc15": 0.7433333333333333,
+        "mae": 18.959871393839517,
+        "rmse": 22.52817380593394,
+        "bias": -15.907548904418945,
+        "relative_bias": -0.08029354363679886,
+        "prediction_mean": 167.92578125,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.09987402903754722,
+        "acc15": 0.7433333333333333,
+        "mae": 18.959871393839517,
+        "rmse": 22.52817380593394,
+        "bias": -15.907548904418945,
+        "relative_bias": -0.08029354363679886,
+        "prediction_mean": 167.92578125,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "architecture",
+    "seed": 2021,
+    "training_compute_seconds": 6.812,
+    "validation_seconds": 3.292,
+    "wall_seconds": 27.862,
+    "num_steps": 195,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 28.624415,
+    "num_params": 39236,
+    "model_bytes_fp32": 156944,
+    "peak_device_memory_bytes": 804914688,
+    "best_epoch": 7,
+    "minimum_validation_mape": 0.0985625945759848,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 13,
+    "last_epoch": 13,
+    "last_epoch_steps": 15,
+    "epoch_progress": 13.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "gate_param_scale = 50 on the NA-E006 head; everything else identical. Same parameter count (39,236).",
+    "device": "cuda"
+  }
+}

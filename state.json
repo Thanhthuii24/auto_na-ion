@@ -9,8 +9,8 @@
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": "NA-E009",
-  "next_experiment_id": "NA-E009",
+  "current_experiment": null,
+  "next_experiment_id": "NA-E010",
   "next_action": "NA-E009 on Colab; then analysis; then fixed-g=0.12 ablation.",
   "active_architecture_parent": {
     "experiment": "NA-E006",
@@ -128,7 +128,14 @@
       "rmse": 18.271094
     }
   },
-  "active_candidates": [],
+  "active_candidates": [
+    {
+      "experiment": "NA-E009",
+      "model": "NaFadeNet+ExtrapGate(reparam s=50)",
+      "split2021_mape": 0.09987,
+      "status": "pending 42/2024"
+    }
+  ],
   "test_status": "unused",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
@@ -168,7 +175,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 9,
+      "experiments": 10,
       "training_seconds": 28
     },
     "remaining": {
@@ -261,7 +268,7 @@
   "directions": {
     "na_fade_net": {
       "status": "open",
-      "followups": 1,
+      "followups": 2,
       "note": "anchor-relative fade trajectory; ablations planned after confirmation"
     }
   }

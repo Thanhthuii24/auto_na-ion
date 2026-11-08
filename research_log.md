@@ -114,3 +114,10 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Analyses NA-E007/E008 were drafted by the lead (Codex usage limit, Gemini not logged in); Codex re-check pending.
 - Caveat: on split 2021 the gate stayed at init (g ≈ 0.12); the gain is the extrapolation signal blended at a
   near-constant weight. Next (needs reviewer): gate repair and a fixed-g ablation.
+
+## NA-E009 — Gate repair (reparameterised gate, s = 50), Split 2021 Screen
+
+- Head parameterisation only; loss Relative Huber 0.15; optimizer locked. Codex APPROVE.
+- VALID, KEEP as candidate: MAPE 0.0999 (NA-E006 0.1053), Acc@15 0.743, RMSE 22.5, bias -15.9, spread 0.75.
+- Gate now learns: mean g 0.158/0.190/0.194/0.199/0.203 by prefix band (NA-E006 flat 0.12); a 2.134, c -3.652.
+  Prefix MAPE 0.122/0.094/0.093/0.093/0.108 (1-10 slightly worse, all later bands better).

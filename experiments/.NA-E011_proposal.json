@@ -1,0 +1,71 @@
+{
+  "id": "NA-E011",
+  "phase": "phase1_model",
+  "training_stage": "full_candidate",
+  "type": "architecture",
+  "model": {
+    "display_name": "NaFadeNet+ExtrapGate(reparam)",
+    "variant": "na_fade_net",
+    "curve_channels": 32,
+    "d_model": 48,
+    "dilations": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "dropout": 0.1,
+    "fade_scale": 10.0,
+    "use_anchor": true,
+    "use_fade": true,
+    "extrap_gate": true,
+    "extrap_window": 20,
+    "extrap_threshold": 0.8,
+    "extrap_cap": 600.0,
+    "gate_param_scale": 50.0
+  },
+  "reference_experiment": "NA-E006",
+  "observation": "Parent NaFadeNet+ExtrapGate 3-split MAPE 0.1474 \u00b1 0.0389. On split 2021 the learned gate never left its init (mean g 0.119-0.120 in every prefix band; a, c unchanged) because Adam moves each raw parameter by about lr = 5e-5 per step and a run has only ~180 steps, so the gate cannot express the prefix dependence the extrapolation needs (extrapolation MAPE 2.5-4.7 at prefixes 1-10 but 0.04-0.11 at 51-100).",
+  "primary_hypothesis": "Re-parameterising only the gate and the extrapolation calibration (g = sigmoid(-2 + s*MLP), a = 2 + s*da, c = -3.6 + s*dc, s = 50, zero-init so the start equals NA-E006) lets these 99 head parameters move about 50x further per Adam step, so g learns to rise with prefix length, which lowers late-prefix MAPE without hurting early prefixes.",
+  "question_inherited": "Is the fixed-blend behaviour of NA-E006 a gate-learning-speed limitation?",
+  "unresolved_from_reference": "Gate stuck at init; late-prefix MAPE 0.10-0.12 on split 2021 while the extrapolation alone reaches 0.04-0.05 there.",
+  "why_this_experiment": "Confirmation of NA-E009 (gate repair, Codex APPROVE) on paper split 2024; only split and seed change.",
+  "modification": "gate_param_scale = 50 on the NA-E006 head; everything else identical. Same parameter count (39,236).",
+  "changed_components": "Gate parameterisation only.",
+  "held_constant_components": "NaFadeNet body, extrapolation features, split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+  "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+  "expected_evidence": "MAPE/RMSE/Acc@15 vs NA-E006; gate mean per prefix band; a, c movement; per-cell errors.",
+  "rejection_condition": "Confirmation run; KEEP if the 3-split mean beats parent ExtrapGate 0.1474 by >= 0.008.",
+  "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+  "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; NaFadeNet block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+  "estimated_budget": {
+    "experiments": 1,
+    "training_seconds": 300
+  },
+  "training": {
+    "seed": 2024,
+    "batch_size": 128,
+    "max_epochs": 100,
+    "minimum_epochs": 5,
+    "patience": 5,
+    "learning_rate": 5e-05,
+    "scheduler": "none",
+    "target_transform": "standard",
+    "main_loss": "relative_huber",
+    "relative_huber_delta": 0.15,
+    "checkpoint_mape_tolerance": 0.005,
+    "physics_loss_weight": 0.0,
+    "extra_loss_weight": 0.0,
+    "prefix_consistency_weight": 0.0,
+    "diagnostic_interval_steps": 50,
+    "required_device": "cuda"
+  },
+  "split": "2024",
+  "architecture_addendum": {
+    "responsible_stage": "Head",
+    "mechanism": "reparameterised (scaled) gate logit and extrapolation calibration so the gate can adapt under the locked optimizer",
+    "shapes": "identical to NA-E006: feats [B,4] -> gate MLP -> logit [B]; g = sigmoid(-2 + 50*logit) [B]; z_ext [B]; y = (1-g)*y_net + g*z_ext [B]",
+    "mask_path": "unchanged from NA-E006 (masked last-20 fit, est clamped to >= n+1); unit test: padded-cycle change -> output diff 0.0; start output equals NA-E006 exactly (diff 0.0).",
+    "expected_evidence": "vs NA-E006 split 2021 (MAPE 0.1053, RMSE 24.0, Acc@15 0.687; DB-MAPE = MAPE): mean g by prefix band increasing from 1-10 to 76-100, lower prefix 51-100 MAPE, overall MAPE lower."
+  }
+}
