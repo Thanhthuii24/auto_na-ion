@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WS = ROOT.parent
 CFG = json.loads((ROOT / "remote" / "config.json").read_text())
-EXCLUDE_TOP = {".git", "experiments", "handoff", "reports", "live.log", "__pycache__", ".claude"}
+EXCLUDE_TOP = {".git", "experiments", "handoff", "reports", "diagnostics", "tests", "live.log", "__pycache__", ".claude"}
 BL_PARTS = ["models", "layers", "utils", "data_provider/data_split_recorder.py", "data_provider/__init__.py"]
 
 
@@ -165,6 +165,11 @@ def fetch(eid):
         src = drive_out(eid)
     if not src.exists():
         sys.exit(f"no output for {eid} at {src}")
+    if (src / "DONE").exists():  # Drive for Desktop may sync DONE before the result folder
+        for _ in range(40):
+            if (src / eid / "validation_predictions.npz").exists() and (src / eid / "record.json").exists():
+                break
+            time.sleep(15)
     if (src / "FAILED").exists() or not (src / "DONE").exists():
         print((src / "FAILED").read_text() if (src / "FAILED").exists() else "not finished")
         sys.exit(f"{eid}: FAILED / not done (see {src}/run.log)")

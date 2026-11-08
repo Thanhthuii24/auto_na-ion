@@ -1,0 +1,210 @@
+{
+  "proposal": {
+    "id": "NA-E013",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "ablation",
+    "model": {
+      "display_name": "Ablation: GateRepair minus anchor",
+      "variant": "na_fade_net",
+      "curve_channels": 32,
+      "d_model": 48,
+      "dilations": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "dropout": 0.1,
+      "fade_scale": 10.0,
+      "use_anchor": false,
+      "use_fade": true,
+      "extrap_gate": true,
+      "extrap_window": 20,
+      "extrap_threshold": 0.8,
+      "extrap_cap": 600.0,
+      "gate_param_scale": 50.0
+    },
+    "reference_experiment": "NA-E010",
+    "observation": "Parent NaFadeNet+ExtrapGate(s=50) 3-split MAPE 0.1087 \u00b1 0.0085; split-42 parent NA-E010 MAPE 0.1170.",
+    "primary_hypothesis": "If the anchor contributes to the parent's gain, removing it (no cycle-1 anchor difference (h - h_1 removed from the state)) raises 3-split MAPE above the parent 0.1087 \u00b1 0.0085.",
+    "question_inherited": "How much of the GateRepair gain is due to the anchor? (architecture.md \u00a75 Run C)",
+    "unresolved_from_reference": "Gate stuck at init; late-prefix MAPE 0.10-0.12 on split 2021 while the extrapolation alone reaches 0.04-0.05 there.",
+    "why_this_experiment": "Attribution ablation owed by architecture.md \u00a75 after the Phase-1 target was met; identical config except one component.",
+    "modification": "Parent NA-E009 config with use_anchor=False: no cycle-1 anchor difference (h - h_1 removed from the state).",
+    "changed_components": "Removes one component: anchor.",
+    "held_constant_components": "Parent NA-E009 config except the removed anchor; split 42, seed 42, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+    "controlled_variables": "Split 42 and training seed 42, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "Split-42 MAPE, RMSE, Acc@15 vs the split-matched parent NA-E010 (MAPE 0.1170, Acc@15 0.700, RMSE 41.3); prefix bands, spread, bias, per-cell.",
+    "rejection_condition": "Ablation (diagnostic): the component is credited if the 3-split ablated MAPE is >= 0.008 worse than the parent; no promotion from ablations.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; NaFadeNet block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 300
+    },
+    "training": {
+      "seed": 42,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    },
+    "architecture_addendum": {
+      "responsible_stage": "Degradation Encoder (state input)",
+      "mechanism": "ablation: remove the anchor",
+      "shapes": "h - h_1 removed: state = [h, r_d, r_c] -> Linear 34->48",
+      "mask_path": "the state projection no longer receives h - h_1; mask path unchanged; unit test padded-cycle change -> output diff 0.0",
+      "expected_evidence": "vs NA-E010 on split 42 (MAPE 0.1170, RMSE 41.3, Acc@15 0.700; DB-MAPE = MAPE, single domain)"
+    }
+  },
+  "metrics": {
+    "mape": 0.12131620786399945,
+    "acc15": 0.7133333333333334,
+    "mae": 28.500286356608072,
+    "rmse": 39.0091803307387,
+    "prediction_diagnostics": {
+      "prediction_mean": 194.36166381835938,
+      "prediction_std": 42.67631149291992,
+      "prediction_min": 97.46678924560547,
+      "prediction_max": 268.91302490234375,
+      "target_mean": 212.8333282470703,
+      "target_std": 63.92030334472656,
+      "prediction_to_target_std_ratio": 0.6676487635354866,
+      "mean_signed_relative_error": -0.0523349829018116,
+      "relative_error_std": 0.14244206249713898,
+      "prediction_target_correlation": 0.8663420760829591,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.1995685382495914,
+        "acc15": 0.45,
+        "mae": 44.88733355204264,
+        "rmse": 57.514651856283514,
+        "bias": -25.351903915405273,
+        "relative_bias": -0.06255996972322464,
+        "prediction_mean": 187.48143005371094,
+        "target_mean": 212.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.14833136990632154,
+        "acc15": 0.5888888888888889,
+        "mae": 37.291892751057944,
+        "rmse": 53.9965510722904,
+        "bias": -30.74739646911621,
+        "relative_bias": -0.09874122589826584,
+        "prediction_mean": 182.0859375,
+        "target_mean": 212.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.13448835446121685,
+        "acc15": 0.5533333333333333,
+        "mae": 31.607290802001952,
+        "rmse": 40.82246092361274,
+        "bias": -20.412559509277344,
+        "relative_bias": -0.05676615238189697,
+        "prediction_mean": 192.42076110839844,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.09875605701422639,
+        "acc15": 0.7666666666666667,
+        "mae": 22.553931833902993,
+        "rmse": 27.730747617085797,
+        "bias": -12.126323699951172,
+        "relative_bias": -0.03015843778848648,
+        "prediction_mean": 200.70700073242188,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.08319418273692515,
+        "acc15": 1.0,
+        "mae": 19.509853719075522,
+        "rmse": 24.059225531190474,
+        "bias": -12.75858211517334,
+        "relative_bias": -0.03814661502838135,
+        "prediction_mean": 200.07473754882812,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.12131620786399945,
+        "acc15": 0.7133333333333334,
+        "mae": 28.500286356608072,
+        "rmse": 39.0091803307387,
+        "bias": -18.471664428710938,
+        "relative_bias": -0.0523349829018116,
+        "prediction_mean": 194.36166381835938,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.12131620786399945,
+        "acc15": 0.7133333333333334,
+        "mae": 28.500286356608072,
+        "rmse": 39.0091803307387,
+        "bias": -18.471664428710938,
+        "relative_bias": -0.0523349829018116,
+        "prediction_mean": 194.36166381835938,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "ablation",
+    "seed": 42,
+    "training_compute_seconds": 11.404,
+    "validation_seconds": 12.886,
+    "wall_seconds": 67.606,
+    "num_steps": 825,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 72.344203,
+    "num_params": 37700,
+    "model_bytes_fp32": 150800,
+    "peak_device_memory_bytes": 804877824,
+    "best_epoch": 50,
+    "minimum_validation_mape": 0.12131620786399945,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 55,
+    "last_epoch": 55,
+    "last_epoch_steps": 15,
+    "epoch_progress": 55.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Parent NA-E009 config with use_anchor=False: no cycle-1 anchor difference (h - h_1 removed from the state).",
+    "device": "cuda"
+  }
+}
