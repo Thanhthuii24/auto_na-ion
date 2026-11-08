@@ -126,3 +126,11 @@ Raw experiment artifacts remain unchanged for reproducibility.
 
 - VALID, KEEP. MAPE 0.1170 (parent ExtrapGate 0.1819), Acc@15 0.700 (0.450), RMSE 41.3 (52.3), bias -21.7, spread 0.67.
 - Prefix MAPE 0.191/0.152/0.127/0.091/0.081 — strong late-prefix gain from the adaptive gate.
+
+## NA-E011 — Gate repair, Split 2024 Confirmation; parent promotion; Phase-1 target met
+
+- VALID, KEEP. MAPE 0.1091 (parent 0.1550), Acc@15 0.743, RMSE 24.3, bias +0.5, spread 1.11.
+- **3-split NaFadeNet+ExtrapGate(s=50): MAPE 0.1087 ± 0.0085, Acc@15 0.729 ± 0.025, RMSE 29.4 ± 10.3**
+  vs ExtrapGate 0.1474 ± 0.0389, NaFadeNet 0.1690 ± 0.0420, CPMLP 0.1778 ± 0.0539. Promoted (gain 0.0387).
+- program.md §1 Phase-1 target (MAPE < 0.20, Acc@15 > 0.68, 3 splits, same checkpoint) is met.
+- Owed (architecture.md §5): matched 3-split ablations use_anchor=false, use_fade=false, fixed g = 0.12.

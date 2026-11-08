@@ -4,30 +4,31 @@
   "research_mode": "model_search_no_physics",
   "phase": "phase1_model",
   "phase_status": "architecture_search_active",
-  "workflow_status": "running_remote",
+  "workflow_status": "proposal_ready",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
-  "next_experiment_id": "NA-E011",
-  "next_action": "NA-E009 on Colab; then analysis; then fixed-g=0.12 ablation.",
+  "next_experiment_id": "NA-E012",
+  "next_action": "Attribution ablations on the parent, 3 splits each: use_anchor=false, use_fade=false, fixed gate g=0.12. Then report to the user before any Phase-2 move.",
   "active_architecture_parent": {
-    "experiment": "NA-E006",
-    "model": "NaFadeNet+ExtrapGate",
+    "experiment": "NA-E009",
+    "model": "NaFadeNet+ExtrapGate(reparam s=50)",
     "runs": [
-      "NA-E006",
-      "NA-E007",
-      "NA-E008"
+      "NA-E009",
+      "NA-E010",
+      "NA-E011"
     ],
     "three_split": {
-      "mape": 0.1474,
-      "mape_std": 0.0389,
-      "acc15": 0.554,
-      "acc15_std": 0.121,
-      "rmse": 35.6
+      "mape": 0.1087,
+      "mape_std": 0.0085,
+      "acc15": 0.729,
+      "acc15_std": 0.025,
+      "rmse": 29.4,
+      "rmse_std": 10.3
     },
-    "reason": "3-split MAPE gain 0.0216 over NaFadeNet (program.md 7)"
+    "reason": "3-split MAPE gain 0.0387 over ExtrapGate; Phase-1 target met (program.md 1)"
   },
   "success_criteria": {
     "same_checkpoint_required": true,
@@ -35,7 +36,7 @@
     "validation_acc15_strictly_above": 0.68,
     "one_seed_is_preliminary_evidence_only": true,
     "final_candidate_requires_three_seed_mean": true,
-    "current_status": "baseline_frozen_targets_open",
+    "current_status": "phase1_target_met_by_NA-E009_group; attribution ablations owed (architecture.md 5)",
     "note": "target set after the CPMLP 3-split baseline",
     "paper_cpmlp_naion_test_mape": 0.274,
     "validation_reference_cpmlp_mape": 0.1778
@@ -128,14 +129,7 @@
       "rmse": 18.271094
     }
   },
-  "active_candidates": [
-    {
-      "experiment": "NA-E009",
-      "model": "NaFadeNet+ExtrapGate(reparam s=50)",
-      "split2021_mape": 0.09987,
-      "status": "pending 42/2024"
-    }
-  ],
+  "active_candidates": [],
   "test_status": "unused",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
@@ -145,7 +139,7 @@
     "hard_cap_valid_architecture_experiments": 50,
     "meaningful_mape_gain": 0.008,
     "meaningful_acc15_gain": 0.02,
-    "valid_architecture_experiments": 6,
+    "valid_architecture_experiments": 9,
     "architecture_families_covered": [
       "anchor_relative_fade_trajectory_tcn"
     ],
@@ -175,7 +169,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 11,
+      "experiments": 12,
       "training_seconds": 28
     },
     "remaining": {
