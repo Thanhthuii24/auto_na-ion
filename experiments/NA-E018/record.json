@@ -1,0 +1,211 @@
+{
+  "proposal": {
+    "id": "NA-E018",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "ablation",
+    "model": {
+      "display_name": "Ablation: GateRepair minus adaptive gate",
+      "variant": "na_fade_net",
+      "curve_channels": 32,
+      "d_model": 48,
+      "dilations": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "dropout": 0.1,
+      "fade_scale": 10.0,
+      "use_anchor": true,
+      "use_fade": true,
+      "extrap_gate": true,
+      "extrap_window": 20,
+      "extrap_threshold": 0.8,
+      "extrap_cap": 600.0,
+      "gate_param_scale": 50.0,
+      "fixed_gate": 0.12
+    },
+    "reference_experiment": "NA-E009",
+    "observation": "Parent NaFadeNet+ExtrapGate(s=50) 3-split MAPE 0.1087 \u00b1 0.0085; split-2021 parent NA-E009 MAPE 0.0999.",
+    "primary_hypothesis": "If the adaptive gate contributes to the parent's gain, removing it (gate fixed at g = 0.12 (the NA-E006 plateau); extrapolation calibration a, c still learned) raises 3-split MAPE above the parent 0.1087 \u00b1 0.0085.",
+    "question_inherited": "How much of the GateRepair gain is due to the adaptive gate? (architecture.md \u00a75 Run C)",
+    "unresolved_from_reference": "Gate stuck at init; late-prefix MAPE 0.10-0.12 on split 2021 while the extrapolation alone reaches 0.04-0.05 there.",
+    "why_this_experiment": "Attribution ablation owed by architecture.md \u00a75 after the Phase-1 target was met; identical config except one component.",
+    "modification": "Parent NA-E009 config with fixed_gate=0.12: gate fixed at g = 0.12 (the NA-E006 plateau); extrapolation calibration a, c still learned.",
+    "changed_components": "Removes one component: adaptive gate.",
+    "held_constant_components": "Parent NA-E009 config except the removed adaptive gate; split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+    "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "Split-2021 MAPE, RMSE, Acc@15 vs the split-matched parent NA-E009 (MAPE 0.0999, Acc@15 0.743, RMSE 22.5); prefix bands, spread, bias, per-cell.",
+    "rejection_condition": "Ablation (diagnostic): the component is credited if the 3-split ablated MAPE is >= 0.008 worse than the parent; no promotion from ablations.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; NaFadeNet block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 300
+    },
+    "training": {
+      "seed": 2021,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    },
+    "architecture_addendum": {
+      "responsible_stage": "Head",
+      "mechanism": "ablation: remove the adaptive gate",
+      "shapes": "gate MLP not built; g = 0.12 constant; a, c (ext_da, ext_dc, s=50) still learned",
+      "mask_path": "the head mixes y_net and z_ext with the constant g; est mask path unchanged; unit test padded-cycle change -> output diff 0.0",
+      "expected_evidence": "vs NA-E009 on split 2021 (MAPE 0.0999, RMSE 22.5, Acc@15 0.743; DB-MAPE = MAPE, single domain)"
+    }
+  },
+  "metrics": {
+    "mape": 0.10460728739155496,
+    "acc15": 0.6866666666666666,
+    "mae": 20.020448099772135,
+    "rmse": 23.935457253163136,
+    "prediction_diagnostics": {
+      "prediction_mean": 165.5756072998047,
+      "prediction_std": 13.107213973999023,
+      "prediction_min": 136.50497436523438,
+      "prediction_max": 201.8153076171875,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.6461600708448824,
+      "mean_signed_relative_error": -0.09254133701324463,
+      "relative_error_std": 0.08268740028142929,
+      "prediction_target_correlation": 0.6463698620879524,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.11019091189818586,
+        "acc15": 0.7,
+        "mae": 19.24802017211914,
+        "rmse": 23.370756288647303,
+        "bias": -5.813523292541504,
+        "relative_bias": -0.019057778641581535,
+        "prediction_mean": 178.01980590820312,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.09934348311980012,
+        "acc15": 0.7777777777777778,
+        "mae": 19.00201670328776,
+        "rmse": 21.76887943746316,
+        "bias": -17.066944122314453,
+        "relative_bias": -0.08571622520685196,
+        "prediction_mean": 166.76638793945312,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.09598147709378083,
+        "acc15": 0.6666666666666666,
+        "mae": 18.679927164713543,
+        "rmse": 22.797205292325387,
+        "bias": -18.16387367248535,
+        "relative_bias": -0.09234730154275894,
+        "prediction_mean": 165.66946411132812,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.10042520915877522,
+        "acc15": 0.6666666666666666,
+        "mae": 19.5103276570638,
+        "rmse": 23.675906666422243,
+        "bias": -19.51032829284668,
+        "relative_bias": -0.10042522102594376,
+        "prediction_mean": 164.322998046875,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.11834000868250939,
+        "acc15": 0.6666666666666666,
+        "mae": 22.791119486490885,
+        "rmse": 26.618714527103123,
+        "bias": -22.791120529174805,
+        "relative_bias": -0.11834000796079636,
+        "prediction_mean": 161.04222106933594,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.10460728739155496,
+        "acc15": 0.6866666666666666,
+        "mae": 20.020448099772135,
+        "rmse": 23.935457253163136,
+        "bias": -18.257722854614258,
+        "relative_bias": -0.09254133701324463,
+        "prediction_mean": 165.5756072998047,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.10460728739155496,
+        "acc15": 0.6866666666666666,
+        "mae": 20.020448099772135,
+        "rmse": 23.935457253163136,
+        "bias": -18.257722854614258,
+        "relative_bias": -0.09254133701324463,
+        "prediction_mean": 165.5756072998047,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "ablation",
+    "seed": 2021,
+    "training_compute_seconds": 2.98,
+    "validation_seconds": 2.376,
+    "wall_seconds": 13.741,
+    "num_steps": 180,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 60.412683,
+    "num_params": 39139,
+    "model_bytes_fp32": 156556,
+    "peak_device_memory_bytes": 804902400,
+    "best_epoch": 7,
+    "minimum_validation_mape": 0.10460728739155496,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 12,
+    "last_epoch": 12,
+    "last_epoch_steps": 15,
+    "epoch_progress": 12.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Parent NA-E009 config with fixed_gate=0.12: gate fixed at g = 0.12 (the NA-E006 plateau); extrapolation calibration a, c still learned.",
+    "device": "cuda"
+  }
+}

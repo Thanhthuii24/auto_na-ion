@@ -1,0 +1,155 @@
+
+===== NA-E018 START 2026-11-08 04:21:28 =====
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=0.97s val_mape=0.155764 val_acc15=0.425000
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=1.15s val_mape=0.159511 val_acc15=0.363333
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.33s val_mape=0.142460 val_acc15=0.543333
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.51s val_mape=0.137421 val_acc15=0.538333
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=1.71s val_mape=0.123605 val_acc15=0.605000
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=1.89s val_mape=0.121244 val_acc15=0.655000
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.07s val_mape=0.104607 val_acc15=0.686667
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=2.26s val_mape=0.110726 val_acc15=0.686667
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=2.44s val_mape=0.118979 val_acc15=0.675000
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=2.62s val_mape=0.139782 val_acc15=0.618333
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=2.80s val_mape=0.150721 val_acc15=0.565000
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=2.98s val_mape=0.157632 val_acc15=0.543333
+{
+  "metrics": {
+    "mape": 0.10460728739155496,
+    "acc15": 0.6866666666666666,
+    "mae": 20.020448099772135,
+    "rmse": 23.935457253163136,
+    "prediction_diagnostics": {
+      "prediction_mean": 165.5756072998047,
+      "prediction_std": 13.107213973999023,
+      "prediction_min": 136.50497436523438,
+      "prediction_max": 201.8153076171875,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.6461600708448824,
+      "mean_signed_relative_error": -0.09254133701324463,
+      "relative_error_std": 0.08268740028142929,
+      "prediction_target_correlation": 0.6463698620879524,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.11019091189818586,
+        "acc15": 0.7,
+        "mae": 19.24802017211914,
+        "rmse": 23.370756288647303,
+        "bias": -5.813523292541504,
+        "relative_bias": -0.019057778641581535,
+        "prediction_mean": 178.01980590820312,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.09934348311980012,
+        "acc15": 0.7777777777777778,
+        "mae": 19.00201670328776,
+        "rmse": 21.76887943746316,
+        "bias": -17.066944122314453,
+        "relative_bias": -0.08571622520685196,
+        "prediction_mean": 166.76638793945312,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.09598147709378083,
+        "acc15": 0.6666666666666666,
+        "mae": 18.679927164713543,
+        "rmse": 22.797205292325387,
+        "bias": -18.16387367248535,
+        "relative_bias": -0.09234730154275894,
+        "prediction_mean": 165.66946411132812,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.10042520915877522,
+        "acc15": 0.6666666666666666,
+        "mae": 19.5103276570638,
+        "rmse": 23.675906666422243,
+        "bias": -19.51032829284668,
+        "relative_bias": -0.10042522102594376,
+        "prediction_mean": 164.322998046875,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.11834000868250939,
+        "acc15": 0.6666666666666666,
+        "mae": 22.791119486490885,
+        "rmse": 26.618714527103123,
+        "bias": -22.791120529174805,
+        "relative_bias": -0.11834000796079636,
+        "prediction_mean": 161.04222106933594,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.10460728739155496,
+        "acc15": 0.6866666666666666,
+        "mae": 20.020448099772135,
+        "rmse": 23.935457253163136,
+        "bias": -18.257722854614258,
+        "relative_bias": -0.09254133701324463,
+        "prediction_mean": 165.5756072998047,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.10460728739155496,
+        "acc15": 0.6866666666666666,
+        "mae": 20.020448099772135,
+        "rmse": 23.935457253163136,
+        "bias": -18.257722854614258,
+        "relative_bias": -0.09254133701324463,
+        "prediction_mean": 165.5756072998047,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "ablation",
+    "seed": 2021,
+    "training_compute_seconds": 2.98,
+    "validation_seconds": 2.376,
+    "wall_seconds": 13.741,
+    "num_steps": 180,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 60.412683,
+    "num_params": 39139,
+    "model_bytes_fp32": 156556,
+    "peak_device_memory_bytes": 804902400,
+    "best_epoch": 7,
+    "minimum_validation_mape": 0.10460728739155496,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 12,
+    "last_epoch": 12,
+    "last_epoch_steps": 15,
+    "epoch_progress": 12.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Parent NA-E009 config with fixed_gate=0.12: gate fixed at g = 0.12 (the NA-E006 plateau); extrapolation calibration a, c still learned.",
+    "device": "cuda"
+  }
+}
+===== NA-E018 COMPLETE =====
