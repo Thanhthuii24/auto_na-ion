@@ -1,0 +1,71 @@
+{
+  "id": "NA-E014",
+  "phase": "phase1_model",
+  "training_stage": "full_candidate",
+  "type": "ablation",
+  "model": {
+    "display_name": "Ablation: GateRepair minus anchor",
+    "variant": "na_fade_net",
+    "curve_channels": 32,
+    "d_model": 48,
+    "dilations": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "dropout": 0.1,
+    "fade_scale": 10.0,
+    "use_anchor": false,
+    "use_fade": true,
+    "extrap_gate": true,
+    "extrap_window": 20,
+    "extrap_threshold": 0.8,
+    "extrap_cap": 600.0,
+    "gate_param_scale": 50.0
+  },
+  "reference_experiment": "NA-E011",
+  "observation": "Parent NaFadeNet+ExtrapGate(s=50) 3-split MAPE 0.1087 \u00b1 0.0085; split-2024 parent NA-E011 MAPE 0.1091.",
+  "primary_hypothesis": "If the anchor contributes to the parent's gain, removing it (no cycle-1 anchor difference (h - h_1 removed from the state)) raises 3-split MAPE above the parent 0.1087 \u00b1 0.0085.",
+  "question_inherited": "How much of the GateRepair gain is due to the anchor? (architecture.md \u00a75 Run C)",
+  "unresolved_from_reference": "Gate stuck at init; late-prefix MAPE 0.10-0.12 on split 2021 while the extrapolation alone reaches 0.04-0.05 there.",
+  "why_this_experiment": "Attribution ablation owed by architecture.md \u00a75 after the Phase-1 target was met; identical config except one component.",
+  "modification": "Parent NA-E009 config with use_anchor=False: no cycle-1 anchor difference (h - h_1 removed from the state).",
+  "changed_components": "Removes one component: anchor.",
+  "held_constant_components": "Parent NA-E009 config except the removed anchor; split 2024, seed 2024, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+  "controlled_variables": "Split 2024 and training seed 2024, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+  "expected_evidence": "Split-2024 MAPE, RMSE, Acc@15 vs the split-matched parent NA-E011 (MAPE 0.1091, Acc@15 0.743, RMSE 24.3); prefix bands, spread, bias, per-cell.",
+  "rejection_condition": "Ablation (diagnostic): the component is credited if the 3-split ablated MAPE is >= 0.008 worse than the parent; no promotion from ablations.",
+  "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+  "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; NaFadeNet block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+  "estimated_budget": {
+    "experiments": 1,
+    "training_seconds": 300
+  },
+  "training": {
+    "seed": 2024,
+    "batch_size": 128,
+    "max_epochs": 100,
+    "minimum_epochs": 5,
+    "patience": 5,
+    "learning_rate": 5e-05,
+    "scheduler": "none",
+    "target_transform": "standard",
+    "main_loss": "relative_huber",
+    "relative_huber_delta": 0.15,
+    "checkpoint_mape_tolerance": 0.005,
+    "physics_loss_weight": 0.0,
+    "extra_loss_weight": 0.0,
+    "prefix_consistency_weight": 0.0,
+    "diagnostic_interval_steps": 50,
+    "required_device": "cuda"
+  },
+  "split": "2024",
+  "architecture_addendum": {
+    "responsible_stage": "Degradation Encoder (state input)",
+    "mechanism": "ablation: remove the anchor",
+    "shapes": "h - h_1 removed: state = [h, r_d, r_c] -> Linear 34->48",
+    "mask_path": "the state projection no longer receives h - h_1; mask path unchanged; unit test padded-cycle change -> output diff 0.0",
+    "expected_evidence": "vs NA-E011 on split 2024 (MAPE 0.1091, RMSE 24.3, Acc@15 0.743; DB-MAPE = MAPE, single domain)"
+  }
+}

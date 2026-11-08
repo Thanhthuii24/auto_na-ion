@@ -87,12 +87,13 @@ class NaFadeNet(nn.Module):
 
     def __init__(self, curve_channels=32, d_model=48, dilations=(1, 2, 4, 8), dropout=0.1,
                  fade_scale=10.0, use_anchor=True, use_fade=True, extrap_gate=False,
-                 extrap_window=20, extrap_threshold=0.8, extrap_cap=600.0, gate_param_scale=None):
+                 extrap_window=20, extrap_threshold=0.8, extrap_cap=600.0, gate_param_scale=None, fixed_gate=None):
         super().__init__()
         self.fade_scale, self.use_anchor, self.use_fade = fade_scale, use_anchor, use_fade
         self.extrap_gate, self.extrap_window = extrap_gate, extrap_window
         self.extrap_threshold, self.extrap_cap = extrap_threshold, extrap_cap
         self.gate_param_scale = gate_param_scale  # NA-E009: reparameterised gate (None = NA-E006 behaviour)
+        self.fixed_gate = fixed_gate  # ablation: constant g (gate MLP unused)
         C, D = curve_channels, d_model
         self.curve_enc = nn.Sequential(
             nn.Conv1d(3, 16, 7, stride=2, padding=3), nn.GELU(),
@@ -106,10 +107,13 @@ class NaFadeNet(nn.Module):
         self.drop = nn.Dropout(dropout)
         self.head = nn.Sequential(nn.Linear(2 * D + 1, D), nn.GELU(), nn.Dropout(dropout), nn.Linear(D, 1))
         if extrap_gate:
-            # NA-E006: gate between the network output and a parameter-free fade extrapolation
-            self.gate = nn.Sequential(nn.Linear(4, 16), nn.GELU(), nn.Linear(16, 1))
-            nn.init.zeros_(self.gate[2].weight)
-            nn.init.constant_(self.gate[2].bias, -2.0)       # starts mostly on the network (g ~ 0.12)
+            # NA-E006: gate between the network output and a parameter-free fade extrapolation.
+            # fixed_gate (ablation): no gate MLP is built or registered; g is the constant.
+            self.gate = None
+            if fixed_gate is None:
+                self.gate = nn.Sequential(nn.Linear(4, 16), nn.GELU(), nn.Linear(16, 1))
+                nn.init.zeros_(self.gate[2].weight)
+                nn.init.constant_(self.gate[2].bias, -2.0)   # starts mostly on the network (g ~ 0.12)
             if gate_param_scale is None:
                 self.ext_scale = nn.Parameter(torch.tensor(2.0))  # z_ext = a * est/100 + c (learned map to target space)
                 self.ext_shift = nn.Parameter(torch.tensor(-3.6))
@@ -117,7 +121,8 @@ class NaFadeNet(nn.Module):
                 # g = sigmoid(-2 + s * MLP), a = 2 + s * da, c = -3.6 + s * dc; zero-init so the start equals NA-E006.
                 # Adam moves each raw parameter by ~lr per step, so s multiplies the effective step of these
                 # few gate parameters only (the locked optimizer and lr are unchanged).
-                nn.init.zeros_(self.gate[2].bias)
+                if self.gate is not None:
+                    nn.init.zeros_(self.gate[2].bias)
                 self.ext_da = nn.Parameter(torch.tensor(0.0))
                 self.ext_dc = nn.Parameter(torch.tensor(0.0))
 
@@ -172,12 +177,15 @@ class NaFadeNet(nn.Module):
             z_ext = self.ext_scale * est / 100.0 + self.ext_shift
         else:
             s = self.gate_param_scale
-            g = torch.sigmoid(-2.0 + s * self.gate(feats)).squeeze(-1)
+            if self.fixed_gate is not None:
+                g = torch.full_like(est, float(self.fixed_gate))
+            else:
+                g = torch.sigmoid(-2.0 + s * self.gate(feats)).squeeze(-1)
             z_ext = (2.0 + s * self.ext_da) * est / 100.0 + (-3.6 + s * self.ext_dc)
         return (1 - g) * out + g * z_ext
 
     def diagnostic_modules(self):
-        extra = {"gate_out": self.gate[2]} if self.extrap_gate else {}
+        extra = {"gate_out": self.gate[2]} if self.extrap_gate and self.gate is not None else {}
         return {
             **extra,
             "curve_conv_first": self.curve_enc[0], "curve_conv_last": self.curve_enc[2],
@@ -4137,7 +4145,7 @@ def build_model(config):
         return BatteryLifeModelWrapper(config["batterylife_model"], config["batterylife_config"])
     if variant == "na_fade_net":
         keys = ("curve_channels", "d_model", "dilations", "dropout", "fade_scale", "use_anchor", "use_fade",
-                "extrap_gate", "extrap_window", "extrap_threshold", "extrap_cap", "gate_param_scale")
+                "extrap_gate", "extrap_window", "extrap_threshold", "extrap_cap", "gate_param_scale", "fixed_gate")
         kw = {k: config[k] for k in keys if k in config}
         if "dilations" in kw:
             kw["dilations"] = tuple(kw["dilations"])
