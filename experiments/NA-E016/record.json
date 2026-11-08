@@ -1,0 +1,210 @@
+{
+  "proposal": {
+    "id": "NA-E016",
+    "phase": "phase1_model",
+    "training_stage": "full_candidate",
+    "type": "ablation",
+    "model": {
+      "display_name": "Ablation: GateRepair minus fade inputs",
+      "variant": "na_fade_net",
+      "curve_channels": 32,
+      "d_model": 48,
+      "dilations": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "dropout": 0.1,
+      "fade_scale": 10.0,
+      "use_anchor": true,
+      "use_fade": false,
+      "extrap_gate": true,
+      "extrap_window": 20,
+      "extrap_threshold": 0.8,
+      "extrap_cap": 600.0,
+      "gate_param_scale": 50.0
+    },
+    "reference_experiment": "NA-E010",
+    "observation": "Parent NaFadeNet+ExtrapGate(s=50) 3-split MAPE 0.1087 \u00b1 0.0085; split-42 parent NA-E010 MAPE 0.1170.",
+    "primary_hypothesis": "If the fade inputs contributes to the parent's gain, removing it (no explicit capacity-ratio inputs (r_d, r_c removed from the state; extrapolation gate unchanged)) raises 3-split MAPE above the parent 0.1087 \u00b1 0.0085.",
+    "question_inherited": "How much of the GateRepair gain is due to the fade inputs? (architecture.md \u00a75 Run C)",
+    "unresolved_from_reference": "Gate stuck at init; late-prefix MAPE 0.10-0.12 on split 2021 while the extrapolation alone reaches 0.04-0.05 there.",
+    "why_this_experiment": "Attribution ablation owed by architecture.md \u00a75 after the Phase-1 target was met; identical config except one component.",
+    "modification": "Parent NA-E009 config with use_fade=False: no explicit capacity-ratio inputs (r_d, r_c removed from the state; extrapolation gate unchanged).",
+    "changed_components": "Removes one component: fade inputs.",
+    "held_constant_components": "Parent NA-E009 config except the removed fade inputs; split 42, seed 42, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
+    "controlled_variables": "Split 42 and training seed 42, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
+    "expected_evidence": "Split-42 MAPE, RMSE, Acc@15 vs the split-matched parent NA-E010 (MAPE 0.1170, Acc@15 0.700, RMSE 41.3); prefix bands, spread, bias, per-cell.",
+    "rejection_condition": "Ablation (diagnostic): the component is credited if the 3-split ablated MAPE is >= 0.008 worse than the parent; no promotion from ablations.",
+    "minimum_evidence_requirements": "At least five complete epochs; finite MAPE, Acc@15, MAE, and RMSE from one checkpoint; sample and unique-cell counts for every domain; gradient, update, activation, prediction, mask, and compute diagnostics.",
+    "required_diagnostics": "Epoch learning curve; selected and minimum-MAPE epochs; NaFadeNet block gradients and updates; activation health; prediction spread and bias; prefix, domain, and EOL errors; domain guardrail flags; padding sensitivity; parameters, memory, time, and throughput.",
+    "estimated_budget": {
+      "experiments": 1,
+      "training_seconds": 300
+    },
+    "training": {
+      "seed": 42,
+      "batch_size": 128,
+      "max_epochs": 100,
+      "minimum_epochs": 5,
+      "patience": 5,
+      "learning_rate": 5e-05,
+      "scheduler": "none",
+      "target_transform": "standard",
+      "main_loss": "relative_huber",
+      "relative_huber_delta": 0.15,
+      "checkpoint_mape_tolerance": 0.005,
+      "physics_loss_weight": 0.0,
+      "extra_loss_weight": 0.0,
+      "prefix_consistency_weight": 0.0,
+      "diagnostic_interval_steps": 50,
+      "required_device": "cuda"
+    },
+    "architecture_addendum": {
+      "responsible_stage": "Degradation Encoder (state input)",
+      "mechanism": "ablation: remove the fade inputs",
+      "shapes": "r_d, r_c removed from the state: [h, h - h_1] -> Linear 64->48; the extrapolation gate still uses q_d",
+      "mask_path": "state no longer receives r_d, r_c; mask path unchanged; unit test padded-cycle change -> output diff 0.0",
+      "expected_evidence": "vs NA-E010 on split 42 (MAPE 0.1170, RMSE 41.3, Acc@15 0.700; DB-MAPE = MAPE, single domain)"
+    }
+  },
+  "metrics": {
+    "mape": 0.18968413277115967,
+    "acc15": 0.48833333333333334,
+    "mae": 41.07490020751953,
+    "rmse": 50.96901667707883,
+    "prediction_diagnostics": {
+      "prediction_mean": 190.68869018554688,
+      "prediction_std": 33.551231384277344,
+      "prediction_min": 114.95557403564453,
+      "prediction_max": 251.66000366210938,
+      "target_mean": 212.8333282470703,
+      "target_std": 63.92030334472656,
+      "prediction_to_target_std_ratio": 0.5248916170396323,
+      "mean_signed_relative_error": -0.0454750657081604,
+      "relative_error_std": 0.2165873497724533,
+      "prediction_target_correlation": 0.7236846783589166,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.2255869389196885,
+        "acc15": 0.5,
+        "mae": 49.97018686930338,
+        "rmse": 66.17917215437973,
+        "bias": -35.896080017089844,
+        "relative_bias": -0.09585297107696533,
+        "prediction_mean": 176.937255859375,
+        "target_mean": 212.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.19551499187706406,
+        "acc15": 0.43333333333333335,
+        "mae": 45.536194525824655,
+        "rmse": 60.77130398423724,
+        "bias": -34.716548919677734,
+        "relative_bias": -0.1028614267706871,
+        "prediction_mean": 178.11679077148438,
+        "target_mean": 212.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.19016272332568732,
+        "acc15": 0.49333333333333335,
+        "mae": 41.7096440633138,
+        "rmse": 50.89672338782196,
+        "bias": -23.295183181762695,
+        "relative_bias": -0.05086419731378555,
+        "prediction_mean": 189.53814697265625,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.18197633922903894,
+        "acc15": 0.5,
+        "mae": 38.08322977701823,
+        "rmse": 43.91413724362381,
+        "bias": -15.557267189025879,
+        "relative_bias": -0.017467914149165154,
+        "prediction_mean": 197.27606201171875,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.17905369783579847,
+        "acc15": 0.5,
+        "mae": 37.19693552652995,
+        "rmse": 43.64253405867621,
+        "bias": -14.537786483764648,
+        "relative_bias": -0.013510078191757202,
+        "prediction_mean": 198.29554748535156,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.18968413277115967,
+        "acc15": 0.48833333333333334,
+        "mae": 41.07490020751953,
+        "rmse": 50.96901667707883,
+        "bias": -22.1446475982666,
+        "relative_bias": -0.0454750657081604,
+        "prediction_mean": 190.68869018554688,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.18968413277115967,
+        "acc15": 0.48833333333333334,
+        "mae": 41.07490020751953,
+        "rmse": 50.96901667707883,
+        "bias": -22.1446475982666,
+        "relative_bias": -0.0454750657081604,
+        "prediction_mean": 190.68869018554688,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "ablation",
+    "seed": 42,
+    "training_compute_seconds": 3.275,
+    "validation_seconds": 2.912,
+    "wall_seconds": 16.602,
+    "num_steps": 195,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 59.543583,
+    "num_params": 39140,
+    "model_bytes_fp32": 156560,
+    "peak_device_memory_bytes": 804911616,
+    "best_epoch": 13,
+    "minimum_validation_mape": 0.189074833024728,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 13,
+    "last_epoch": 13,
+    "last_epoch_steps": 15,
+    "epoch_progress": 13.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Parent NA-E009 config with use_fade=False: no explicit capacity-ratio inputs (r_d, r_c removed from the state; extrapolation gate unchanged).",
+    "device": "cuda"
+  }
+}

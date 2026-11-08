@@ -1,0 +1,156 @@
+
+===== NA-E016 START 2026-11-08 04:13:26 =====
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=1.00s val_mape=0.318796 val_acc15=0.076667
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=1.18s val_mape=0.294424 val_acc15=0.186667
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.37s val_mape=0.282998 val_acc15=0.220000
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.56s val_mape=0.266275 val_acc15=0.293333
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=1.77s val_mape=0.255309 val_acc15=0.305000
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=1.96s val_mape=0.234546 val_acc15=0.323333
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.15s val_mape=0.215392 val_acc15=0.326667
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=2.33s val_mape=0.189075 val_acc15=0.408333
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=2.52s val_mape=0.195306 val_acc15=0.396667
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=2.71s val_mape=0.193424 val_acc15=0.456667
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=2.90s val_mape=0.196425 val_acc15=0.395000
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=3.09s val_mape=0.189577 val_acc15=0.431667
+epoch=13 epoch_steps=15/15 epoch_progress=13.000 steps=195 train_compute=3.27s val_mape=0.189684 val_acc15=0.488333
+{
+  "metrics": {
+    "mape": 0.18968413277115967,
+    "acc15": 0.48833333333333334,
+    "mae": 41.07490020751953,
+    "rmse": 50.96901667707883,
+    "prediction_diagnostics": {
+      "prediction_mean": 190.68869018554688,
+      "prediction_std": 33.551231384277344,
+      "prediction_min": 114.95557403564453,
+      "prediction_max": 251.66000366210938,
+      "target_mean": 212.8333282470703,
+      "target_std": 63.92030334472656,
+      "prediction_to_target_std_ratio": 0.5248916170396323,
+      "mean_signed_relative_error": -0.0454750657081604,
+      "relative_error_std": 0.2165873497724533,
+      "prediction_target_correlation": 0.7236846783589166,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.2255869389196885,
+        "acc15": 0.5,
+        "mae": 49.97018686930338,
+        "rmse": 66.17917215437973,
+        "bias": -35.896080017089844,
+        "relative_bias": -0.09585297107696533,
+        "prediction_mean": 176.937255859375,
+        "target_mean": 212.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.19551499187706406,
+        "acc15": 0.43333333333333335,
+        "mae": 45.536194525824655,
+        "rmse": 60.77130398423724,
+        "bias": -34.716548919677734,
+        "relative_bias": -0.1028614267706871,
+        "prediction_mean": 178.11679077148438,
+        "target_mean": 212.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.19016272332568732,
+        "acc15": 0.49333333333333335,
+        "mae": 41.7096440633138,
+        "rmse": 50.89672338782196,
+        "bias": -23.295183181762695,
+        "relative_bias": -0.05086419731378555,
+        "prediction_mean": 189.53814697265625,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.18197633922903894,
+        "acc15": 0.5,
+        "mae": 38.08322977701823,
+        "rmse": 43.91413724362381,
+        "bias": -15.557267189025879,
+        "relative_bias": -0.017467914149165154,
+        "prediction_mean": 197.27606201171875,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.17905369783579847,
+        "acc15": 0.5,
+        "mae": 37.19693552652995,
+        "rmse": 43.64253405867621,
+        "bias": -14.537786483764648,
+        "relative_bias": -0.013510078191757202,
+        "prediction_mean": 198.29554748535156,
+        "target_mean": 212.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.18968413277115967,
+        "acc15": 0.48833333333333334,
+        "mae": 41.07490020751953,
+        "rmse": 50.96901667707883,
+        "bias": -22.1446475982666,
+        "relative_bias": -0.0454750657081604,
+        "prediction_mean": 190.68869018554688,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.18968413277115967,
+        "acc15": 0.48833333333333334,
+        "mae": 41.07490020751953,
+        "rmse": 50.96901667707883,
+        "bias": -22.1446475982666,
+        "relative_bias": -0.0454750657081604,
+        "prediction_mean": 190.68869018554688,
+        "target_mean": 212.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "ablation",
+    "seed": 42,
+    "training_compute_seconds": 3.275,
+    "validation_seconds": 2.912,
+    "wall_seconds": 16.602,
+    "num_steps": 195,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 59.543583,
+    "num_params": 39140,
+    "model_bytes_fp32": 156560,
+    "peak_device_memory_bytes": 804911616,
+    "best_epoch": 13,
+    "minimum_validation_mape": 0.189074833024728,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 13,
+    "last_epoch": 13,
+    "last_epoch_steps": 15,
+    "epoch_progress": 13.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Parent NA-E009 config with use_fade=False: no explicit capacity-ratio inputs (r_d, r_c removed from the state; extrapolation gate unchanged).",
+    "device": "cuda"
+  }
+}
+===== NA-E016 COMPLETE =====

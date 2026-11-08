@@ -10,7 +10,7 @@
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
-  "next_experiment_id": "NA-E016",
+  "next_experiment_id": "NA-E017",
   "next_action": "Attribution ablations on the parent, 3 splits each: use_anchor=false, use_fade=false, fixed gate g=0.12. Then report to the user before any Phase-2 move.",
   "active_architecture_parent": {
     "experiment": "NA-E009",
