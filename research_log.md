@@ -121,3 +121,8 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - VALID, KEEP as candidate: MAPE 0.0999 (NA-E006 0.1053), Acc@15 0.743, RMSE 22.5, bias -15.9, spread 0.75.
 - Gate now learns: mean g 0.158/0.190/0.194/0.199/0.203 by prefix band (NA-E006 flat 0.12); a 2.134, c -3.652.
   Prefix MAPE 0.122/0.094/0.093/0.093/0.108 (1-10 slightly worse, all later bands better).
+
+## NA-E010 — Gate repair, Split 42 Confirmation
+
+- VALID, KEEP. MAPE 0.1170 (parent ExtrapGate 0.1819), Acc@15 0.700 (0.450), RMSE 41.3 (52.3), bias -21.7, spread 0.67.
+- Prefix MAPE 0.191/0.152/0.127/0.091/0.081 — strong late-prefix gain from the adaptive gate.

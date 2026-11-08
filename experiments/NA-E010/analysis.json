@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E010",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does the s=50 gate reparameterisation confirm on paper split 42 that NA-E006's fixed-blend behaviour was a gate-learning-speed limitation?",
+    "outcome": "SUPPORTED",
+    "conclusion": "Independent recomputation from all 600 selected-checkpoint predictions gives MAPE 0.116952, Acc@15 0.700, and RMSE 41.261 cycles versus same-split NA-E007 at 0.181909, 0.450, and 52.300. MAPE improves in every prefix band (0.1909/0.1521/0.1273/0.0914/0.0815 versus 0.2358/0.2013/0.1854/0.1620/0.1651), prediction-to-target spread rises from 0.4846 to 0.6667, and bias improves from -25.92 to -21.72 cycles. Reconstructed directly from the selected checkpoint and locked split-42 validation inputs, mean gate values rise by prefix band from 0.2592 to 0.4599, 0.5063, 0.5602, and 0.6290; effective calibration moves to a=2.5376 and c=-3.8600. Five of six cells improve in MAPE, led by 5-3-37 (-0.1439) and 5-8-32 (-0.1254), while 6-6-26 regresses by 0.0230. This split therefore confirms that the repaired gate learns substantial prefix dependence and improves the matched configuration; split 2024 is still needed for the proposal's three-split promotion rule.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,absolute_relative_error}",
+      "record.json$.metrics",
+      "record.json$.metrics.by_prefix",
+      "best_checkpoint.pt::state_dict.{gate.*,ext_da,ext_dc}",
+      "diagnostics.json$.summary"
+    ]
+  },
+  "main_symptom": "The s=50 repair produces a large same-split gain and an increasingly extrapolation-weighted late-prefix gate, but residual underprediction remains (-21.72 cycles), cell 6-6-26 worsens from 0.1274 to 0.1503 MAPE, and zero-initialized calibration ratios cause scale-sensitive gradient warnings despite finite nonzero gradients and updates.",
+  "causes": [
+    {
+      "id": "C1_GATE_STEP_SCALE",
+      "class": "gate learning-speed limitation",
+      "supporting_evidence": [
+        "best_checkpoint.pt::state_dict.{gate.*,ext_da,ext_dc}",
+        "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+        "record.json$.metrics.by_prefix",
+        "diagnostics.json$.summary.layer_health.gate"
+      ],
+      "contradicting_evidence": [
+        "validation_predictions.npz::cell_id=NA-ion_270040-6-6-26.pkl",
+        "diagnostics.json$.summary.overall_gradient_health"
+      ],
+      "interpretation": "The selected checkpoint directly expresses the intended mechanism: gate means rise from 0.2592 at prefixes 1-10 to 0.6290 at 76-100, while late-band MAPE falls by 0.0806-0.0836 versus NA-E007. The matched headline gain and improvement in five cells support effective step scale as the leading cause, although the result is not uniform across cells.",
+      "missing_evidence": [
+        "Matched split-2024 confirmation",
+        "Final three-split mean and sample standard deviation versus NA-E006/NA-E007/NA-E008"
+      ]
+    },
+    {
+      "id": "C2_GENERAL_FIT_VARIATION",
+      "class": "general representation fit or checkpoint variation",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.learning_dynamics",
+        "record.json$.metrics.prediction_diagnostics",
+        "validation_predictions.npz::cell_id=NA-ion_270040-6-6-26.pkl"
+      ],
+      "contradicting_evidence": [
+        "best_checkpoint.pt::state_dict.gate.*",
+        "record.json$.metrics.by_prefix",
+        "validation_predictions.npz::{prediction,target,cell_id}"
+      ],
+      "interpretation": "Longer training or ordinary checkpoint variation can explain some cell-level movement: the selected epoch is 50, validation MAPE rebounds by 0.0082 afterward, and one cell regresses. It is not the leading account of the broad gain because every prefix band and five of six cells improve while the checkpoint independently shows the intended monotone band-level gate pattern.",
+      "missing_evidence": [
+        "A matched rerun variance estimate on split 42",
+        "Split-2024 evidence under the identical configuration"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_GATE_STEP_SCALE",
+  "layers": [
+    {
+      "name": "curve_enc",
+      "role": "encode each observed cycle curve",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.curve_enc",
+        "diagnostics.json$.summary.activation_health.curve_conv_first",
+        "diagnostics.json$.summary.activation_health.curve_conv_last"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite gradients, nonzero late updates, and healthy encoder activations show no fault in this held-constant block."
+    },
+    {
+      "name": "state_proj",
+      "role": "project anchor-relative curve and fade features into the temporal state",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.state_proj",
+        "diagnostics.json$.summary.activation_health.state_proj"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The block is connected, finite, updating, and activation-healthy; the matched experiment did not change it."
+    },
+    {
+      "name": "tcn",
+      "role": "model the masked causal degradation trajectory",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn",
+        "diagnostics.json$.summary.activation_health.tcn_first",
+        "diagnostics.json$.summary.activation_health.tcn_last",
+        "diagnostics.json$.summary.padding_invariance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Gradients and updates are finite and nonzero, temporal activations are healthy, and padded-cycle perturbation changes the output by exactly zero."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn_norm"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The saved diagnostic summary is finite and HEALTHY, but the required standalone layer report labels this block WEAK from its small ratios; preserve the candidate and audit the cross-tool threshold discrepancy before a later architectural change."
+    },
+    {
+      "name": "head",
+      "role": "predict the network EOL estimate before extrapolation fusion",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.head",
+        "diagnostics.json$.summary.activation_health.head",
+        "diagnostics.json$.summary.activation_health.head_hidden"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "The inherited prediction head remains finite, updating, and activation-healthy, so no body-head repair is supported by this confirmation."
+    },
+    {
+      "name": "gate",
+      "role": "adaptively blend the network and extrapolation estimates",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.gate",
+        "best_checkpoint.pt::state_dict.gate.*",
+        "record.json$.metrics.by_prefix"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Late gradients and updates are healthy, and selected-checkpoint gate means rise from 0.2592 to 0.6290 across the five prefix bands while accuracy improves strongly."
+    },
+    {
+      "name": "ext_da",
+      "role": "scaled correction to extrapolation slope calibration a",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.ext_da",
+        "best_checkpoint.pt::state_dict.ext_da"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The parameter is finite, updates, and yields effective a=2.5376, but zero initialization makes early gradient/parameter and update ratios singular and the standalone report labels it EXPLODING; audit diagnostic normalization without altering this confirmation recipe."
+    },
+    {
+      "name": "ext_dc",
+      "role": "scaled correction to extrapolation shift calibration c",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.ext_dc",
+        "best_checkpoint.pt::state_dict.ext_dc"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The parameter is finite, updates, and yields effective c=-3.8600, but its zero-initialization-normalized ratios are singular and the standalone report labels it EXPLODING; audit this scale diagnostic while retaining the learned calibration."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "The proposal declares training_stage=full_candidate, so the generic screen_floor is non-applicable. The gradient field is FAIL because diagnostics.json records overall_gradient_health=WARNING from scale-sensitive zero-initialized calibration ratios; all gradients and outputs are finite, required blocks remain connected and updating, and the run is therefore valid but carries the same audit warning as NA-E009."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "CONFIRM",
+    "summary": "Keep the s=50 gate repair after its strong split-42 confirmation and run the identical configuration on split 2024; only then decide promotion from the three-split mean and sample standard deviation, carrying the calibration-ratio and tcn_norm audit notes.",
+    "source_cause_id": "C1_GATE_STEP_SCALE",
+    "responsible_block": "reparameterised extrapolation gate"
+  }
+}
