@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E015",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does removing the explicit r_d, r_c capacity-ratio fade inputs worsen the GateRepair parent enough across the three paper splits to credit the fade component?",
+    "outcome": "SUPPORTED",
+    "conclusion": "Independent recomputation from the 600 selected-checkpoint predictions (epoch 11) gives split-2021 MAPE 0.083483, Acc@15 0.8117, RMSE 20.280 cycles, bias -10.903, prediction/target std 19.31/20.28, versus NA-E009 MAPE 0.099874, Acc@15 0.7433, RMSE 22.528, bias -15.908, std 15.21/20.28 (delta MAPE -0.016391). Prefix bands (ablation vs parent): 01-10 0.1329 vs 0.1221; 11-25 0.0852 vs 0.0936; 26-50 0.0850 vs 0.0928; 51-75 0.0746 vs 0.0932; 76-100 0.0700 vs 0.1085. Per-cell MAPE: 1-6-59 0.0454 vs 0.0978; 3-2-55 0.1422 vs 0.1567; 3-4-53 0.0737 vs 0.0937; 4-2-47 0.1426 vs 0.1473; 4-6-43 0.0628 vs 0.0533; 5-5-35 0.0342 vs 0.0504. Family 3-split MAPE 0.129589 +/- 0.054465 (sample std) versus parent 0.108654 +/- 0.008549; mean delta +0.020936, meeting the +0.008 credit threshold, so the component is credited.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+      "record.json$.metrics",
+      "experiments/NA-E009/validation_predictions.npz",
+      "experiments/NA-E016/validation_predictions.npz",
+      "experiments/NA-E017/validation_predictions.npz",
+      "results.tsv::NA-E009,NA-E010,NA-E011"
+    ]
+  },
+  "main_symptom": "Split 2021: ablation MAPE 0.0835 vs parent 0.0999 (-0.0164); family mean +0.0209 worse than parent with sample std 0.0545. Diagnostics are finite, padding-invariant, with overall_gradient_health=WARNING from branch imbalance (ext_da/tcn_norm ratio 2.21e+06).",
+  "causes": [
+    {
+      "id": "C1_FADE_STATE_INFORMATIVE",
+      "class": "informative state feature",
+      "supporting_evidence": [
+        "validation_predictions.npz::{prediction,target,prefix_length}",
+        "record.json$.metrics.by_prefix",
+        "experiments/NA-E016/validation_predictions.npz",
+        "experiments/NA-E017/validation_predictions.npz"
+      ],
+      "contradicting_evidence": [
+        "record.json$.metrics.mape",
+        "record.json$.metrics.acc15"
+      ],
+      "interpretation": "The capacity-ratio fade state carries degradation-level information the curve encoder and TCN do not recover reliably; without it the network underestimates spread (prediction std shrinks) on the hardest split. This split is a counterexample: removal improves MAPE by -0.0164, but the family mean is still +0.0209 worse.",
+      "missing_evidence": [
+        "Repeated-seed variance within each locked split"
+      ]
+    },
+    {
+      "id": "C2_SPLIT_CHECKPOINT_VARIATION",
+      "class": "small-validation-set and checkpoint variation",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.learning_dynamics",
+        "validation_predictions.npz::cell_id",
+        "experiments/NA-E016/record.json$.metrics",
+        "experiments/NA-E017/record.json$.metrics"
+      ],
+      "contradicting_evidence": [
+        "experiments/NA-E015/record.json$.metrics.mape",
+        "experiments/NA-E016/record.json$.metrics.mape",
+        "experiments/NA-E017/record.json$.metrics.mape"
+      ],
+      "interpretation": "With six validation cells per split and one seed, the family mean is dominated by split 42 (+0.0727); split 2021 improves and split 2024 worsens only slightly, so the credit rests largely on one split.",
+      "missing_evidence": [
+        "Matched reruns with different initialization seeds on the same locked splits"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_FADE_STATE_INFORMATIVE",
+  "layers": [
+    {
+      "name": "fade_inputs",
+      "role": "provide the r_d, r_c capacity-ratio fade state to the state projection",
+      "evidence_paths": [
+        "record.json$.proposal.model.use_fade",
+        "validation_predictions.npz",
+        "experiments/NA-E016/validation_predictions.npz",
+        "experiments/NA-E017/validation_predictions.npz"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Ablated in this family; its removal worsens 3-split MAPE by +0.0209 (>= +0.008), so it is credited and kept in the attributed configuration."
+    },
+    {
+      "name": "curve_enc",
+      "role": "encode each observed cycle curve",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.curve_enc"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    },
+    {
+      "name": "ext_da",
+      "role": "scaled correction to extrapolation slope calibration",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.ext_da",
+        "diagnostics.json$.summary.branch_gradient_imbalance"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "Connected and finite, but flagged WARNING (exploding-gradient candidate from parameter-normalized ratios at zero initialization), as in the parent family."
+    },
+    {
+      "name": "ext_dc",
+      "role": "scaled correction to extrapolation shift calibration",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.ext_dc"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    },
+    {
+      "name": "gate",
+      "role": "adaptively blend network and extrapolation estimates",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.gate",
+        "diagnostics.json$.summary.activation_health.gate_out"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    },
+    {
+      "name": "head",
+      "role": "produce the network EOL estimate before extrapolation fusion",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.head",
+        "diagnostics.json$.summary.activation_health.head"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    },
+    {
+      "name": "state_proj",
+      "role": "project curve and remaining state features",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.state_proj",
+        "diagnostics.json$.summary.activation_health.state_proj"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    },
+    {
+      "name": "tcn",
+      "role": "model the masked causal degradation trajectory",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": [
+        "diagnostics.json$.summary.layer_health.tcn_norm"
+      ],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "Finite, nonzero late gradients and healthy status; held constant by this ablation."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the generic screening floor is non-applicable. Gradient gate is FAIL because diagnostics.json records overall_gradient_health=WARNING from calibration-scale branch-imbalance ratios; all gradients and outputs remain finite and connected."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "STOP",
+    "summary": "Close the fade_inputs attribution family: keep the recorded KEEP for NA-E015; credit fade_inputs (3-split delta +0.0209 >= +0.008) and keep it in the attributed configuration. Note the credit is driven mainly by split 42; a seed-repeat would firm it up.",
+    "source_cause_id": "C1_FADE_STATE_INFORMATIVE",
+    "responsible_block": "fade_inputs"
+  }
+}

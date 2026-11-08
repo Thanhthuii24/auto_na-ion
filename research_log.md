@@ -140,7 +140,9 @@ Raw experiment artifacts remain unchanged for reproducibility.
 | Family | split 2021 / 42 / 2024 | 3-split MAPE | vs parent 0.1087 ± 0.0085 |
 |---|---|---|---|
 | − anchor (h − h_1) | 0.0854 / 0.1213 / 0.1154 | 0.1074 ± 0.0193 | −0.0013 → not credited (Codex confirmed) |
-| − fade inputs (r_d, r_c) | 0.0835 / 0.1897 / 0.1156 | 0.1296 ± 0.0545 | +0.0209 → credited (Codex pending) |
-| fixed gate g = 0.12 | 0.1046 / 0.1805 / 0.1541 | 0.1464 ± 0.0385 | +0.0377 → credited (Codex pending) |
+| − fade inputs (r_d, r_c) | 0.0835 / 0.1897 / 0.1156 | 0.1296 ± 0.0545 | +0.0209 → credited (independent reviewer confirmed) |
+| fixed gate g = 0.12 | 0.1046 / 0.1805 / 0.1541 | 0.1464 ± 0.0385 | +0.0377 → credited (independent reviewer confirmed) |
 
 - The adaptive extrapolation gate is the largest contributor, then the explicit capacity-ratio inputs; the cycle-1 anchor adds nothing measurable.
+- Reviewer caveat (fade family): the +0.0209 credit rests mainly on split 42 (+0.0727; split 2021 −0.0164). Gate credit holds on all three splits.
+- Phase 1 CLOSED (target met) on user go 2026-11-08; frozen model = NA-E009 config. Phase 2 ACTIVE.
