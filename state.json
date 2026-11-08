@@ -1,17 +1,17 @@
 {
   "benchmark_round": "BATTERYLIFE-NA-ION-R1",
   "workflow_version": "three-phase-relative-huber-v1",
-  "research_mode": "model_search_no_physics",
-  "phase": "phase1_model",
-  "phase_status": "architecture_search_active",
-  "workflow_status": "paused_reviewer_limit",
+  "research_mode": "loss_search_physics",
+  "phase": "phase2_loss",
+  "phase_status": "phase2_active",
+  "workflow_status": "running_remote",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": null,
+  "current_experiment": "NA-E021",
   "next_experiment_id": "NA-E021",
-  "next_action": "PAUSED until Codex reset 15:33. Then Codex drafts analysis.json for NA-E015..E020 (fade / fixed-gate families) and family verdicts in handoff/reviews/ablations.md; then report Phase-1 closure to the user and WAIT for go before Phase 2 (physics loss).",
+  "next_action": "NA-E021 (P2 voltage-sag what-if) on Colab; then analysis; confirm 42/2024.",
   "active_architecture_parent": {
     "experiment": "NA-E009",
     "model": "NaFadeNet+ExtrapGate(reparam s=50)",
@@ -149,11 +149,15 @@
   },
   "phase_gates": {
     "phase1_model": {
-      "status": "ACTIVE"
+      "status": "CLOSED_TARGET_MET",
+      "frozen": "NA-E009 group (NaFadeNet+ExtrapGate s=50)",
+      "result": "3-split val MAPE 0.1087 ± 0.0085, Acc@15 0.729 ± 0.025; ablations: gate +0.038, fade inputs +0.021 credited, anchor not credited",
+      "closed_by": "user go 2026-11-08 (keep the parent)"
     },
     "phase2_loss": {
-      "status": "LOCKED",
-      "requires": "Phase 1 closed (A3)"
+      "status": "ACTIVE",
+      "unlocked_by": "user 2026-11-08",
+      "frozen_model": "NA-E009 config"
     },
     "phase3_tinyml": {
       "status": "LOCKED",
@@ -265,5 +269,6 @@
       "followups": 2,
       "note": "anchor-relative fade trajectory; ablations planned after confirmation"
     }
-  }
+  },
+  "reviewers_note": "2026-11-08: Codex at usage limit; user asked Claude (independent agent) and Gemini to review. Gemini not logged in yet."
 }

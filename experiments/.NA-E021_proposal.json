@@ -31,7 +31,7 @@
   "unresolved_from_reference": "Physical consistency of the parent under what-if fade is unmeasured; worst cells remain extreme-EOL ones.",
   "why_this_experiment": "Phase 2 start (user go 2026-11-08). loss.md \u00a74.6 order is P0 -> P4 -> P0c -> P2, but the measured parent violation rates show P0/P4/P0c are already satisfied (nothing to improve, the \u00a75.3 'violation rate falls' criterion cannot be met), so the evidence-led first test is P2.",
   "modification": "Loss = Relative Huber(0.15) + lambda * P2, P2 = mean ReLU(f(x_tilde) - sg[f(x)]), x_tilde: discharge voltage channel of observed cycles minus beta * r_n, r_n = clip((n-10)/90, 0, 1), beta ~ U(0, beta_max), beta_max = P90 of the training-cell drop in mean normalised discharge voltage cycle 10 -> 100; lambda = 0.5 * median grad-norm ratio on 3 fixed training batches (loss.md \u00a75.2). Model unchanged (NA-E009 config).",
-  "changed_components": "Objective only (adds P0).",
+  "changed_components": "Objective only (adds P2).",
   "held_constant_components": "NA-E009 model and config, split 2021, seed 2021, Relative Huber 0.15, Adam 5e-5, batch 128, max 100 / min 5 epochs, patience 5, checkpoint rule, data, masks.",
   "controlled_variables": "Split 2021 and training seed 2021, minimum 5 / maximum 100 epochs, patience 5 after epoch 5, diagnostics every 50 steps.",
   "expected_evidence": "Split-2021 MAPE/RMSE/Acc@15 vs NA-E009 (0.0999 / 22.5 / 0.743); P2 held-out violation rate vs NA-E009 0.836; balance band R_P2 median in [0.05, 2.0], active fraction, cosine (loss.md \u00a75.3).",
