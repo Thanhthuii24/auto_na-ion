@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E022",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "With the P2 voltage-sag term implemented exactly as loss.md 4.6 (anchor sg[f(x)], dropout-free identical network for f(x) and f(x_tilde), rho 0.5, margin 0, beta ~ U(0, beta_max)), does the held-out P2 violation fall by >= 50% vs NA-E009 (0.836) on split 2021 without MAPE > 0.1049 or BALANCE_FAIL?",
+    "outcome": "REFUTED",
+    "conclusion": "Independent recomputation from the 600 selected-checkpoint predictions (epoch 1 of 9, early stop): MAPE 0.1760, Acc@15 0.265, RMSE 37.58, bias -31.20 cycles, prediction/target std 10.6/20.3, vs NA-E009 MAPE 0.0999, Acc@15 0.743, RMSE 22.53, bias -15.91. MAPE 0.1760 > 0.1049 fails the pre-registered rule, so the decision is DISCARD. The held-out P2 violation of 0.437 is a 47.7% fall, which also fails the >= 50% rule. Validation MAPE rises every epoch (0.176 -> 0.308 -> ... -> 0.827) and the train main loss rises from 0.024 to 0.065, so the best checkpoint is epoch 1. 5 of 6 cells get worse, all through a downward bias (1-6-59 0.230, bias -46; 3-2-55 0.232, -47; 3-4-53 0.178, -32; 4-2-47 0.204, -40; 5-5-35 0.164, -29; 4-6-43 0.048, +7). loss_balance PASS on only 2 samples (R 2.60 at step 1, 1.17 at step 61; median 1.88, inside the loss.md band of 2.0). The train.py physics_balance gate (threshold 1.0) flags PHYSICS_GRADIENT_DOMINATES, so overall_gradient_health is UNHEALTHY. The calibrated lambda is 0.1184 (median ratio 0.237), 2.07x NA-E021's 0.0571. Mechanism: with the anchor stopped, the gradient of the hinge is the plain output gradient of f(x_tilde) on active samples. On a parent training batch, cos(grad hinge, grad mean f) = 0.999. Because the sag at beta_max = 0.00373 (normalised V) shifts the parent's predictions by only +0.0018 cycles on average (max 0.0049), the network cannot tell x_tilde from x, so the term works as a constant push of all predictions downward. Main-vs-physics gradient cosine is -0.996 at step 61. The candidate's what-if response is now a tie (max |d| 0.0003 cycles, 0 violations above 1e-3 cycles), so the fall in violation comes from collapsed sensitivity, not from learned physics.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id}",
+      "record.json$.metrics",
+      "record.json$.result.best_epoch",
+      "diagnostics.json$.physics_validation.physics_violation_rate",
+      "diagnostics.json$.physics_calibration",
+      "diagnostics.json$.summary.loss_balance",
+      "diagnostics.json$.summary.physics_balance",
+      "diagnostics.json$.epoch_history[*].loss_balance",
+      "train.log (calibrated lambda 1.183962e-01; NA-E021 train.log 5.707178e-02)",
+      "experiments/NA-E009/validation_predictions.npz",
+      "reviewer probe (CPU, eval mode): parent/candidate what-if shifts at beta in {0.0037, 0.0052, 0.0085, 0.05, 0.1}; gradient cosine on one training batch"
+    ]
+  },
+  "main_symptom": "Accuracy collapsed from epoch 1 onward (MAPE 0.176 -> 0.827 by epoch 9; bias -31 cycles at the selected epoch, prediction std ratio 0.52), while the P2 violation fell only to 0.437 (-47.7%).",
+  "causes": [
+    {
+      "id": "C1_SG_HINGE_IS_LEVEL_PUSH",
+      "class": "objective mechanism: stop-gradient hinge on a sub-resolution what-if equals a downward bias on all predictions",
+      "supporting_evidence": [
+        "reviewer probe on NA-E009 checkpoint, training batch: cos(grad relu(f(x_tilde)-sg f(x)), grad mean f) = 0.999, active fraction 0.875",
+        "reviewer probe: NA-E009 what-if shift at beta_max 0.00373 = +0.0018 cycles mean, max 0.0049",
+        "diagnostics.json$.summary.loss_balance.samples[1].gradient_cosine",
+        "validation_predictions.npz::{prediction,target} (bias -31.2 cycles vs parent -15.9)",
+        "diagnostics.json$.epoch_history[*].loss_balance.main_loss_mean"
+      ],
+      "contradicting_evidence": [
+        "diagnostics.json$.summary.loss_balance.status"
+      ],
+      "interpretation": "loss.md 4.6 stops the gradient through f(x), so the gradient is only grad f(x_tilde), and only on the active samples. When x_tilde is nearly x, the gradient is grad f(x), and the term says 'predict shorter life' on ~40-90% of the samples. It is almost never satisfied by learning a sag response, because the response is ~1e-3 cycles. The main loss pushes back (cosine -0.996 at step 61), and the net effect is a growing negative bias. In NA-E021 the un-stopped anchor made the gradient grad f(x_tilde) - grad f(x), and that difference cancels the level push. This is why the non-compliant run looked fine.",
+      "missing_evidence": [
+        "A per-epoch held-out violation and bias trajectory",
+        "Splits 42/2024 (not needed for the decision: the failure is large and mechanistic)"
+      ]
+    },
+    {
+      "id": "C2_LAMBDA_UNDERCALIBRATED_FOR_HINGE",
+      "class": "balance calibration: unsigned |d| gradient cancels across samples, the hinge gradient does not",
+      "supporting_evidence": [
+        "diagnostics.json$.physics_calibration.lambda",
+        "diagnostics.json$.summary.loss_balance.samples[0].R",
+        "diagnostics.json$.summary.physics_balance.flags",
+        "experiments/NA-E021/train.log lambda 5.707178e-02"
+      ],
+      "contradicting_evidence": [
+        "reviewer probe on the trained parent: |grad hinge|/|grad unsigned| = 1.09 (no gap once the sign of d is systematic)"
+      ],
+      "interpretation": "Calibration runs at random init, where the sign of d is random. The unsigned loss gradient sum(sign(d) grad f)/B then partly cancels, while the hinge sums same-sign output gradients. So the step-1 R is 2.60 (5.2x the rho target of 0.5) and the median R is 1.88. The lambda is 2.07x NA-E021's because the NA-E021 denominator was inflated by dropout-difference gradients from two independent masks plus the un-stopped anchor. The band (<= 2.0) formally passes, but on only 2 samples, and the train.py gate (1.0) flags dominance. Lambda size makes the bias worse, but it is not the root cause (C1).",
+      "missing_evidence": [
+        "Balance samples every 50 steps (only steps 1 and 61 were logged in 135 steps)"
+      ]
+    },
+    {
+      "id": "C3_MODEL_INSENSITIVE_TO_VOLTAGE_LEVEL",
+      "class": "what-if range / input sensitivity",
+      "supporting_evidence": [
+        "compute_beta_max_per_domain (split 2021, 20 training cells): beta_max = 0.003734; P50/P90/max of the 10->100 drop 0.0029/0.0037/0.0038; drop extrapolated to EOL P50/P90/max 0.0052/0.0085/0.0094; between-cell std of cycle-10 mean discharge V 0.0054",
+        "reviewer probe: NA-E009 mean shift +0.0025/+0.0040/+0.0235/+0.0471 cycles at beta 0.0052/0.0085/0.05/0.1 (violation 0.83 at every range)",
+        "reviewer probe: NA-E022 max |d| 0.0003 cycles at beta_max, 0.0084 at beta 0.1"
+      ],
+      "contradicting_evidence": [
+        "The parent's positive sign is systematic (0.83 at every range), so there is a real, tiny wrong-direction sensitivity"
+      ],
+      "interpretation": "Even a sag 27x beta_max (0.1, more than the whole cross-cell voltage spread) moves the parent by only 0.05 cycles (~0.03% of EOL). The physically defensible widening (EOL-extrapolated P90 = 0.0085, 2.3x) gives 0.004 cycles. The P2 rule constrains an input the model does not use, so no range inside the data can make the term informative.",
+      "missing_evidence": [
+        "Same check on splits 42/2024"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_SG_HINGE_IS_LEVEL_PUSH",
+  "layers": [
+    {"name": "curve_enc", "role": "encode each observed cycle curve (receives the sagged voltage channel)", "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY, no non-finite gradients; the failure comes from the objective, not this block."},
+    {"name": "ext_da", "role": "scaled correction to extrapolation slope calibration", "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_da", "diagnostics.json$.summary.branch_gradient_imbalance"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY; branch imbalance ext_da/tcn_norm 8.5e4 is the known parent-family scale artefact (gate_param_scale 50)."},
+    {"name": "ext_dc", "role": "scaled correction to extrapolation shift calibration", "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_dc"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY."},
+    {"name": "gate", "role": "blend network and extrapolation estimates", "evidence_paths": ["diagnostics.json$.summary.layer_health.gate"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY."},
+    {"name": "head", "role": "produce the network EOL estimate", "evidence_paths": ["diagnostics.json$.summary.layer_health.head"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY; it carries the downward level push but is not faulty."},
+    {"name": "state_proj", "role": "project curve and fade-state features", "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY."},
+    {"name": "tcn", "role": "model the masked causal degradation trajectory", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY."},
+    {"name": "tcn_norm", "role": "normalize temporal residual updates", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "HEALTHY; smallest block in the imbalance ratio."}
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the screening floor does not apply. Gradient gate FAIL: overall_gradient_health=UNHEALTHY from physics_balance PHYSICS_GRADIENT_DOMINATES (median R 1.88 > train.py 1.0). diagnostics agent_action says INVALID, but the reviewer keeps the run VALID: all values are finite, padding is INVARIANT, no block is dead or disconnected, the implementation matches loss.md 4.6, and dominance is a scientific outcome of the registered objective, not an implementation, numerical or protocol fault (program.md 8)."
+    }
+  },
+  "decision": "DISCARD",
+  "next_action": {
+    "type": "NEW_HYPOTHESIS",
+    "summary": "DISCARD under the pre-registered rule (MAPE 0.1760 > 0.1049; violation fall 47.7% < 50%). Close the P2 direction: its first test (NA-E021) had no physics-creditable signal, and this compliant repair is refuted. Per program.md 7, a direction with no promising signal gets one targeted repair, then closes. No single 5.3 change rescues it. Widening beta to the EOL-extrapolated P90 (0.0085) moves the parent by only 0.004 cycles, and a margin makes the push active on all samples. Lowering rho (0.5 -> 0.1, giving a predicted median R ~0.38) would only shrink the same downward bias. Next: the P0 capacity-fade what-if (first in the loss.md order, untested in v5) on the NA-E009 parent. Before submitting, check that the parent's eval-mode what-if response at alpha_max is resolvable (>= ~0.1 cycles); otherwise the stop-gradient hinge again becomes a level push.",
+    "source_cause_id": "C1_SG_HINGE_IS_LEVEL_PUSH",
+    "responsible_block": "objective (whatif_vsag_p2 term)"
+  }
+}

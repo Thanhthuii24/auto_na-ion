@@ -1,0 +1,154 @@
+
+===== NA-E022 START 2026-11-08 05:08:06 =====
+[physics] Calibrated lambda = 1.183962e-01 (rho=0.5, median_ratio=2.367925e-01, batch_ratios=[0.331172, 0.236792, 0.134303])
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=0.60s val_mape=0.176033 val_acc15=0.265000
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=0.98s val_mape=0.308303 val_acc15=0.060000
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=1.37s val_mape=0.409568 val_acc15=0.015000
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.75s val_mape=0.472499 val_acc15=0.010000
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=2.20s val_mape=0.523090 val_acc15=0.005000
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=2.57s val_mape=0.562580 val_acc15=0.005000
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=2.96s val_mape=0.636605 val_acc15=0.005000
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=3.35s val_mape=0.719877 val_acc15=0.005000
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=3.72s val_mape=0.827013 val_acc15=0.005000
+{
+  "metrics": {
+    "mape": 0.1760328298615726,
+    "acc15": 0.265,
+    "mae": 33.62540679931641,
+    "rmse": 37.57733088540357,
+    "prediction_diagnostics": {
+      "prediction_mean": 152.6325225830078,
+      "prediction_std": 10.62695598602295,
+      "prediction_min": 142.324462890625,
+      "prediction_max": 199.55838012695312,
+      "target_mean": 183.8333282470703,
+      "target_std": 20.284778594970703,
+      "prediction_to_target_std_ratio": 0.5238881921372185,
+      "mean_signed_relative_error": -0.15919828414916992,
+      "relative_error_std": 0.11285407096147537,
+      "prediction_target_correlation": 0.19910201632980296,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.11841714914992164,
+        "acc15": 0.7166666666666667,
+        "mae": 20.510783640543618,
+        "rmse": 25.01912284491448,
+        "bias": -5.6552581787109375,
+        "relative_bias": -0.016201702877879143,
+        "prediction_mean": 178.17807006835938,
+        "target_mean": 183.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.1596986978116822,
+        "acc15": 0.45555555555555555,
+        "mae": 30.132511732313368,
+        "rmse": 32.21570812687338,
+        "bias": -25.936864852905273,
+        "relative_bias": -0.1301518827676773,
+        "prediction_mean": 157.896484375,
+        "target_mean": 183.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.18405308344047946,
+        "acc15": 0.16666666666666666,
+        "mae": 35.43470306396485,
+        "rmse": 38.995355386000746,
+        "bias": -34.55228042602539,
+        "relative_bias": -0.17783880233764648,
+        "prediction_mean": 149.28103637695312,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.18567420659070905,
+        "acc15": 0.16666666666666666,
+        "mae": 35.85891418457031,
+        "rmse": 39.756826023226,
+        "bias": -35.66227722167969,
+        "relative_bias": -0.18428942561149597,
+        "prediction_mean": 148.1710662841797,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.1912179510681238,
+        "acc15": 0.16666666666666666,
+        "mae": 36.924189453125,
+        "rmse": 40.913158219841144,
+        "bias": -36.764461517333984,
+        "relative_bias": -0.19009308516979218,
+        "prediction_mean": 147.06886291503906,
+        "target_mean": 183.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.1760328298615726,
+        "acc15": 0.265,
+        "mae": 33.62540679931641,
+        "rmse": 37.57733088540357,
+        "bias": -31.200807571411133,
+        "relative_bias": -0.15919828414916992,
+        "prediction_mean": 152.6325225830078,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.1760328298615726,
+        "acc15": 0.265,
+        "mae": 33.62540679931641,
+        "rmse": 37.57733088540357,
+        "bias": -31.200807571411133,
+        "relative_bias": -0.15919828414916992,
+        "prediction_mean": 152.6325225830078,
+        "target_mean": 183.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "physics_violation_rate": 0.43722222222222223
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "loss",
+    "seed": 2021,
+    "training_compute_seconds": 3.723,
+    "validation_seconds": 1.863,
+    "wall_seconds": 13.556,
+    "num_steps": 135,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 36.258067,
+    "num_params": 39236,
+    "model_bytes_fp32": 156944,
+    "peak_device_memory_bytes": 1425443328,
+    "best_epoch": 1,
+    "minimum_validation_mape": 0.1760328298615726,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 9,
+    "last_epoch": 9,
+    "last_epoch_steps": 15,
+    "epoch_progress": 9.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "As NA-E021, but physics_anchor_gradient='stop' and physics_dropout_matched=true: in both the lambda calibration and the training term, f(x) (no grad) and f(x_tilde) are computed with dropout disabled. Unit test: beta = 0 gives hinge 0.000 (old setting 0.062).",
+    "device": "cuda"
+  }
+}
+===== NA-E022 COMPLETE =====

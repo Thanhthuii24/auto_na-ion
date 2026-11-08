@@ -4,13 +4,13 @@
   "research_mode": "loss_search_physics",
   "phase": "phase2_loss",
   "phase_status": "phase2_active",
-  "workflow_status": "running_remote",
+  "workflow_status": "analysis",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
-  "current_experiment": "NA-E022",
-  "next_experiment_id": "NA-E022",
+  "current_experiment": null,
+  "next_experiment_id": "NA-E023",
   "next_action": "NA-E021 (P2 voltage-sag what-if) on Colab; then analysis; confirm 42/2024.",
   "active_architecture_parent": {
     "experiment": "NA-E009",
@@ -173,7 +173,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 22,
+      "experiments": 23,
       "training_seconds": 28
     },
     "remaining": {
@@ -268,6 +268,14 @@
       "status": "open",
       "followups": 2,
       "note": "anchor-relative fade trajectory; ablations planned after confirmation"
+    },
+    "p2_voltage_sag": {
+      "status": "closed",
+      "runs": [
+        "NA-E021",
+        "NA-E022"
+      ],
+      "reason": "parent does not use voltage level; P2 what-if within data range moves predictions <= 0.005 cycles; compliant P2 becomes a constant push and collapses accuracy"
     }
   },
   "reviewers_note": "2026-11-08: Codex at usage limit; user asked Claude (independent agent) and Gemini to review. Gemini not logged in yet."

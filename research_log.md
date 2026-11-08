@@ -154,3 +154,12 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Independent reviewer: physics_anchor_gradient='both' (no sg on f(x)) and independent dropout masks for f(x) / f(x_tilde)
   — the term was mostly dropout-consistency noise (hinge 0.04-0.06 already at beta = 0). Gain not creditable to physics.
 - Repair: `physics_dropout_matched` (dropout-free what-if branch, anchor stop) -> NA-E022.
+
+## NA-E022 — Compliant P2 repair (stop anchor, dropout-matched), Split 2021 — direction CLOSED
+
+- VALID, DISCARD. MAPE 0.1760, Acc@15 0.265, best epoch 1 (val MAPE rises every epoch); lambda 0.118 (E021 0.057); R median 1.88.
+- Independent reviewer: beta_max = 0.0037 (normalised V) moves the parent by +0.0018 cycles (max 0.005); even the EOL-extrapolated
+  P90 range (0.0085) moves it 0.004 cycles. The parent does not use the voltage level, so the parent's "0.836 violation" is a sign
+  test on near-zero changes (0 violations above 1e-3 cycles). With sg[f(x)] the term becomes a constant "predict shorter" push
+  (cos with main-loss gradient -0.996), producing the negative bias. In E021 the 'both' anchor cancelled this push.
+- P2 closed (program.md §7: no physics-creditable signal after the first test + one repair).

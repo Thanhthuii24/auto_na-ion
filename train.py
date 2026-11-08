@@ -5741,7 +5741,12 @@ def whatif_loss(
     f_x = predictions if anchor_gradient == "both" else predictions.detach()  # loss.md §4.6 P0-sym
     if physics_type == "prefix_drift":
         x_tilde, masks_t = truncate_prefix_view(curves, masks, rng)
-        f_tilde = model(x_tilde, masks_t)
+        if dropout_matched:  # NA-E023: both views on the same dropout-free network (drift = prefix effect only)
+            with dropout_off(model):
+                f_x = model(curves, masks) if anchor_gradient == "both" else model(curves, masks).detach()
+                f_tilde = model(x_tilde, masks_t)
+        else:
+            f_tilde = model(x_tilde, masks_t)
         drift = f_tilde - f_x
         if drift_log_mu_over_s is not None:  # loss.md: prefix_drift in log-EOL space (scale-free)
             drift = log_eol_ratio(f_tilde, f_x, drift_log_mu_over_s)
@@ -5984,7 +5989,12 @@ def calibrate_whatif_lambda(
         if physics_type == "prefix_drift":
             x_tilde, masks_t = truncate_prefix_view(curves, masks, physics_rng)
             param = torch.zeros(curves.size(0), device=device)
-            f_tilde = model(x_tilde, masks_t)
+            if config.get("physics_dropout_matched", False):
+                with dropout_off(model):
+                    f_x = model(curves, masks)
+                    f_tilde = model(x_tilde, masks_t)
+            else:
+                f_tilde = model(x_tilde, masks_t)
         else:
             param = sample_whatif_param(domains, bounds_by_domain, physics_rng, physics_type=physics_type).to(device)
             x_tilde = apply_whatif(curves, masks, param, physics_type=physics_type, prefix_lengths=prefix_lengths)
