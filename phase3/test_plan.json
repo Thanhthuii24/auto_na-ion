@@ -1,0 +1,16 @@
+{
+  "created": "2026-11-09",
+  "status": "PLANNED (not opened)",
+  "rule": "Test split opened exactly once, all models in one pass; no model, loss, checkpoint or threshold may change afterwards.",
+  "splits": ["2021", "42", "2024"],
+  "metrics": ["MAPE", "Acc@15", "RMSE", "MAPE by prefix band", "per-cell MAPE"],
+  "models": {
+    "CPMLP (local, Relative Huber)": {"2021": "NA-E000", "42": "NA-E001", "2024": "NA-E002"},
+    "NaFadeNet+ExtrapGate, no physics loss": {"2021": "NA-E009", "42": "NA-E010", "2024": "NA-E011"},
+    "FROZEN: NaFadeNet+ExtrapGate + N1 physics loss (fp32)": {"2021": "NA-E032", "42": "NA-E033", "2024": "NA-E034"},
+    "FROZEN N1, INT8 weight-only (ONNX dynamic)": "phase3/<run>_int8_dynamic.onnx",
+    "FROZEN N1, fp16 weights (fp32 compute)": "rounded state_dict"
+  },
+  "reference_only": {"BatteryLife paper CPMLP Na-ion test MAPE": "0.274 ± 0.026", "paper CPTransformer": "0.255 ± 0.036", "paper Dummy": "0.404 ± 0.029"},
+  "reported_caveats": ["N1 kept under the post-hoc user amendment A7-NA", "~35 runs selected on 18 val cells", "data = BatteryLife processed v12 (paper used an earlier version)", "on-board STM32 measurement deferred (no board / Cube.AI)"]
+}
