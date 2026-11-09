@@ -111,7 +111,7 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - VALID, KEEP. MAPE 0.1550 (parent 0.1772), Acc@15 0.525, RMSE 30.6, bias -1.1, spread 1.12.
 - **3-split: ExtrapGate 0.1474 ± 0.0389, Acc@15 0.554 ± 0.121, RMSE 35.6 ± 14.8**
   vs NaFadeNet 0.1690 ± 0.0420 and CPMLP 0.1778 ± 0.0539. Gain 0.0216 → NaFadeNet+ExtrapGate is the active parent.
-- Analyses NA-E007/E008 were drafted by the lead (Codex usage limit, Gemini not logged in); Codex re-check pending.
+- Analyses NA-E007/E008 were drafted by the lead (Codex usage limit, Gemini not logged in); Codex re-checked and corrected them on 2026-11-08 (handoff/reviews/NA-E007.md).
 - Caveat: on split 2021 the gate stayed at init (g ≈ 0.12); the gain is the extrapolation signal blended at a
   near-constant weight. Next (needs reviewer): gate repair and a fixed-g ablation.
 
@@ -176,13 +176,13 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Codex recommendation: close Phase 2. Capacity rules already satisfied by the parent, P2 irrelevant (voltage-insensitive),
   both drift forms fail; finding = the relevant physics is already encoded by the architecture (adaptive fade-extrapolation gate).
 
-## NA-E024 — One-way prefix-drift (sg on full prefix), Split 2021; Phase 2 CLOSED
+## NA-E024 — One-way prefix-drift (sg on full prefix), Split 2021; Phase 2 closure proposed (later reopened)
 
 - VALID, DISCARD. MAPE 0.1157 (> 0.1049), drift -10.5% (needs -50%), 76-100 MAPE 0.1351 (+0.027). Balance PASS (R 0.51; cos +0.75 -> -0.97).
 - Codex: close Phase 2. Capacity rules are already satisfied by the architecture, P2 is irrelevant (voltage-insensitive model),
   both drift forms failed; rho 0.25 would weaken an already insufficient term; §4.5 asymmetry points the wrong way for the
   parent's under-prediction.
-- **Phase 2 CLOSED (no gain).** Final v5 model = NA-E009 config: 3-split val MAPE 0.1087 ± 0.0085, Acc@15 0.729 ± 0.025.
+- ~~Phase 2 CLOSED (no gain).~~ **Superseded:** the user reopened Phase 2 on 2026-11-09 (goal: a physics loss). The final model is NA-E009 config + N1 (NA-E032..E034); see the entries below.
   Thesis finding: physics constraints are encoded architecturally (extrapolation gate), so what-if physics losses are redundant here.
 - Next: stop and wait for the user (Phase 3 TinyML / one-time test).
 
