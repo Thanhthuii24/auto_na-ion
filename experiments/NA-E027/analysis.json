@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E027",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "On split 42, does the NA-E026 degradation-law configuration improve MAPE over NA-E010 and contribute to satisfying the fixed three-split A5-NA accuracy, law-fit, and balance rule?",
+    "outcome": "SUPPORTED",
+    "conclusion": "Reviewer recomputation from 600 selected-checkpoint predictions confirms MAPE 0.112137, Acc@15 0.728333, and RMSE 40.1419 cycles at epoch 45. MAPE improves over matched parent NA-E010 (0.116952), so the split-local results.tsv rule gives KEEP. Held-out law-fit error is 0.0332 versus parent 0.0348 and true-EOL floor 0.0277; excess falls from 0.0071 to 0.0055 (22.5%). Balance passes with median R 0.556. Across all three confirmations, however, A5-NA is refuted because mean law-fit excess falls only 15.6%, not the required 30%.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+      "experiments/NA-E010/validation_predictions.npz",
+      "record.json$.result.{best_epoch,completed_epochs,stop_reason}",
+      "record.json$.metrics.{mape,acc15,rmse,by_prefix}",
+      "diagnostics.json$.summary.{loss_balance,physics_balance,padding_invariance,layer_health}",
+      "BL_SPLIT=42 tools/law_fit_eval.py NA-E027: candidate 0.0332, parent 0.0348, floor 0.0277"
+    ]
+  },
+  "main_symptom": "Split 42 MAPE improves by 0.00481 and balance passes, but law-fit excess improves only 22.5%; combined with the other splits, the fixed A5-NA physics gate fails.",
+  "causes": [
+    {
+      "id": "C1_LIMITED_LAW_TRANSFER",
+      "class": "objective limitation: the auxiliary loss does not deliver the registered cross-split law-fit reduction",
+      "supporting_evidence": [
+        "BL_SPLIT=42 tools/law_fit_eval.py reports excess 0.0055 versus parent 0.0071",
+        "The three-split candidate excess mean is 0.01747 versus parent 0.02070, a 15.6% reduction rather than 30%",
+        "diagnostics.json$.summary.loss_balance.status is PASS with median_R 0.555675"
+      ],
+      "contradicting_evidence": [
+        "Split 42 law-fit error and excess both move in the intended direction",
+        "Split 42 MAPE improves from 0.116952 to 0.112137"
+      ],
+      "interpretation": "The objective is active and useful on this split, but its independently measured physics effect is too small and inconsistent across the three-split confirmation to meet A5-NA.",
+      "missing_evidence": []
+    },
+    {
+      "id": "C2_GRADIENT_INTERFERENCE",
+      "class": "optimization interaction: physics and main gradients become variably opposed during training",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.loss_balance.samples has cosine values down to -0.759 at step 500",
+        "diagnostics.json$.summary.physics_balance.gradient_cosine median is 0.0878",
+        "The active fraction falls from 0.969 to about 0.23 late in training"
+      ],
+      "contradicting_evidence": [
+        "Cosine is positive at the first and final recorded samples",
+        "Median R remains inside the registered [0.05, 2.0] balance interval"
+      ],
+      "interpretation": "The law loss is not disconnected or numerically unbalanced, but its changing alignment offers a plausible reason that added law pressure does not translate into a 30% held-out excess reduction.",
+      "missing_evidence": [
+        "Dense per-step gradient-cosine traces rather than six diagnostic samples"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_LIMITED_LAW_TRANSFER",
+  "layers": [
+    {
+      "name": "curve_enc/state_proj/tcn/head/gate",
+      "role": "frozen-parent feature extraction, temporal modeling, EOL prediction, and extrapolation blending",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health", "tools/layer_report.py NA-E027"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "All constituent blocks have finite gradients, nonzero late updates, and layer_report status OK except the inherited weak tcn_norm audit noted separately."
+    },
+    {
+      "name": "ext_da/ext_dc",
+      "role": "scaled extrapolation calibration corrections",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.{ext_da,ext_dc}", "tools/layer_report.py NA-E027"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The extreme early g/p values arise from inherited zero initialization; gradients and updates are finite. Repair the audit denominator, not the frozen architecture."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm", "tools/layer_report.py NA-E027"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "layer_report marks the block WEAK (late g/p 2.18e-4), while gradients and updates remain nonzero; audit thresholds rather than changing the confirmed parent."
+    },
+    {
+      "name": "law_head",
+      "role": "predict the degradation-law exponent for the auxiliary objective",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.law_head", "tools/layer_report.py NA-E027"],
+      "persistent_dead_gradient": false,
+      "action": "REMOVE",
+      "reason": "The head trains normally, but the completed three-split family fails its defining A5-NA law-fit gate."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the screen floor is not applicable. The audit gradient gate is FAIL because overall_gradient_health is UNHEALTHY from the legacy physics-loss-value dominance flag and layer_report marks tcn_norm WEAK. The governing loss-balance gate passes (median R 0.556), all gradients are finite, required blocks update, and padding is invariant, so the run remains VALID."
+    }
+  },
+  "decision": "KEEP",
+  "next_action": {
+    "type": "STOP",
+    "summary": "Record split-local KEEP versus NA-E010, but do not promote the degradation-law configuration: the completed A5-NA three-split law-fit gate fails with only a 15.6% mean excess reduction.",
+    "source_cause_id": "C1_LIMITED_LAW_TRANSFER",
+    "responsible_block": "degradation-law auxiliary objective and law_head"
+  }
+}

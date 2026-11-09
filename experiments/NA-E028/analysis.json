@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E028",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "On split 2024, does the NA-E026 degradation-law configuration improve MAPE over NA-E011 and complete the fixed three-split A5-NA accuracy, law-fit, and balance rule?",
+    "outcome": "REFUTED",
+    "conclusion": "Reviewer recomputation from 600 selected-checkpoint predictions confirms MAPE 0.111591, Acc@15 0.756667, and RMSE 24.4526 cycles at epoch 27. MAPE is worse than matched parent NA-E011 (0.109135), so the split-local results.tsv rule gives DISCARD. Held-out law-fit error is 0.0397 versus parent 0.0400 and true-EOL floor 0.0152; excess falls only from 0.0248 to 0.0245 (1.2%). Balance passes with median R 0.381. Three-split MAPE is 0.1049 +/- 0.0121 and balance passes everywhere, but mean law-fit excess falls from 0.0207 to 0.0175 (15.6%), below A5-NA's required 30%; therefore the degradation-law configuration is not promoted.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+      "experiments/NA-E011/validation_predictions.npz",
+      "record.json$.result.{best_epoch,completed_epochs,stop_reason}",
+      "record.json$.metrics.{mape,acc15,rmse,by_prefix}",
+      "diagnostics.json$.summary.{loss_balance,physics_balance,padding_invariance,layer_health}",
+      "BL_SPLIT=2024 tools/law_fit_eval.py NA-E028: candidate 0.0397, parent 0.0400, floor 0.0152"
+    ]
+  },
+  "main_symptom": "Split 2024 MAPE regresses by 0.00246 and law-fit excess improves only 1.2%; although aggregate accuracy and balance pass, the fixed three-split physics gate fails decisively.",
+  "causes": [
+    {
+      "id": "C1_CROSS_SPLIT_PHYSICS_FAILURE",
+      "class": "generalization limitation: the auxiliary loss does not consistently improve held-out degradation-law fit",
+      "supporting_evidence": [
+        "BL_SPLIT=2024 tools/law_fit_eval.py reports excess 0.0245 versus parent 0.0248, only a 1.2% reduction",
+        "Three-split mean excess is 0.01747 versus parent 0.02070, only a 15.6% reduction",
+        "The fixed A5-NA requirement is at least a 30% reduction"
+      ],
+      "contradicting_evidence": [
+        "All three candidate law-fit errors are below their matched-parent errors",
+        "Three-split MAPE improves from 0.1087 to 0.1049"
+      ],
+      "interpretation": "The direction produces a small regularization benefit in aggregate, but the held-out trajectory evidence is far too weak to support the registered physics-informed-loss promotion claim.",
+      "missing_evidence": []
+    },
+    {
+      "id": "C2_SPLIT_DEPENDENCE",
+      "class": "evaluation heterogeneity: accuracy benefit is not consistent across the six-cell validation splits",
+      "supporting_evidence": [
+        "Candidate-parent MAPE changes are -0.00905, -0.00481, and +0.00246 on splits 2021, 42, and 2024",
+        "validation_predictions.npz contains only 6 unique validation cells on this split",
+        "record.json$.metrics.by_prefix shows early-band MAPE 0.1749 while late-band MAPE is 0.0681"
+      ],
+      "contradicting_evidence": [
+        "Three-split mean MAPE 0.10485 satisfies the A5-NA accuracy ceiling 0.1137",
+        "Three-split Acc@15 rises from 0.729 to 0.791"
+      ],
+      "interpretation": "The loss is a potentially useful regularizer, but the split-2024 regression and small validation-cell count prevent treating its accuracy effect as uniformly robust; the independent physics gate was designed to resolve exactly this ambiguity and fails.",
+      "missing_evidence": [
+        "No further discovery split is authorized or needed for the fixed A5-NA decision"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_CROSS_SPLIT_PHYSICS_FAILURE",
+  "layers": [
+    {
+      "name": "curve_enc/state_proj/tcn/head/gate",
+      "role": "frozen-parent feature extraction, temporal modeling, EOL prediction, and extrapolation blending",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health", "tools/layer_report.py NA-E028"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "All constituent blocks have finite gradients, nonzero late updates, and layer_report status OK except the inherited weak tcn_norm audit noted separately."
+    },
+    {
+      "name": "ext_da/ext_dc",
+      "role": "scaled extrapolation calibration corrections",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.{ext_da,ext_dc}", "tools/layer_report.py NA-E028"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The extreme early g/p values arise from inherited zero initialization; gradients and updates are finite. Repair the audit denominator, not the frozen architecture."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm", "tools/layer_report.py NA-E028"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "layer_report marks the block WEAK (late g/p 2.27e-4), while gradients and updates remain nonzero; audit thresholds rather than changing the confirmed parent."
+    },
+    {
+      "name": "law_head",
+      "role": "predict the degradation-law exponent for the auxiliary objective",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.law_head", "tools/layer_report.py NA-E028"],
+      "persistent_dead_gradient": false,
+      "action": "REMOVE",
+      "reason": "The head is healthy and trained, but the completed family fails the defining A5-NA law-fit gate and this split also loses on MAPE."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the screen floor is not applicable. The audit gradient gate is FAIL because overall_gradient_health is WARNING and layer_report marks tcn_norm WEAK. All gradients are finite, loss balance passes (median R 0.381), physics_balance is HEALTHY, required blocks update, and padding is invariant, so the run remains VALID."
+    }
+  },
+  "decision": "DISCARD",
+  "next_action": {
+    "type": "STOP",
+    "summary": "DISCARD NA-E028 versus NA-E011 and close the degradation-law direction. A5-NA passes aggregate MAPE and balance but fails the defining law-fit excess reduction (15.6% versus 30%). Retain the frozen no-physics-loss parent.",
+    "source_cause_id": "C1_CROSS_SPLIT_PHYSICS_FAILURE",
+    "responsible_block": "degradation-law auxiliary objective and law_head"
+  }
+}

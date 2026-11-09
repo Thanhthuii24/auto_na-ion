@@ -202,3 +202,15 @@ Raw experiment artifacts remain unchanged for reproducibility.
   regularisation signal, not a promoted physics candidate. Decision on any protocol amendment is the user's.
 
 - **A5-NA (user, 2026-11-09):** confirm NA-E026 config on 42/2024 (NA-E027/E028); rule fixed before running: 3-split MAPE <= 0.1137, 3-split law-fit excess -30% vs parent, balance PASS on all splits.
+
+## NA-E027 / NA-E028 — A5-NA 3-split confirmation of the degradation-law loss (rho 1.0)
+
+| Model | MAPE 2021/42/2024 | 3-split MAPE | Acc@15 | RMSE |
+|---|---|---|---|---|
+| CPMLP | 0.1261/0.2337/0.1737 | 0.1778 ± 0.0539 | 0.499 | 41.4 |
+| Parent NA-E009 | 0.0999/0.1170/0.1091 | 0.1087 ± 0.0085 | 0.729 | 29.4 |
+| + degradation law | 0.0908/0.1121/0.1116 | 0.1049 ± 0.0121 | 0.791 | 28.3 |
+
+- A5-NA: MAPE ceiling pass, balance PASS on all splits, law-fit excess 0.0207 -> 0.0175 (-15.6%, needs -30%) -> DISCARD.
+- Codex: the loss acts as a useful accuracy regulariser but does not materially enforce the degradation law; report it as a
+  negative physics result and keep the credited physics-informed architecture (fade inputs + adaptive extrapolation gate).
