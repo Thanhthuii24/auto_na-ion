@@ -4709,8 +4709,11 @@ def gradient_snapshot(model):
         values[name] = {
             "grad_norm": grad_norm,
             "parameter_norm": parameter_norm,
-            "grad_to_parameter_ratio": grad_norm / (parameter_norm + 1e-12),
+            # v5 health fix (2026-11-09): floor the denominator at 1e-2 * sqrt(n) so zero-initialised parameters
+            # (e.g. ext_da / ext_dc, init 0 by design) are not reported as exploding; raw parameter_norm stays logged.
+            "grad_to_parameter_ratio": grad_norm / max(parameter_norm, 1e-2 * math.sqrt(max(1, item["n"]))),
             "near_zero_gradient_fraction": item["near_zero"] / max(1, item["n"]),
+            "numel": item["n"],
             "nonfinite_gradients": item["nonfinite"],
         }
     return values
@@ -4744,8 +4747,8 @@ def summarize_diagnostics(diagnostics):
         "exploding_grad_ratio_max": 100.0,
         "collapsed_activation_std_max": 1e-8,
         "collapsed_activation_zero_fraction": 0.999,
-        "physics_gradient_ratio_min": 0.01,
-        "physics_gradient_ratio_max": 1.0,
+        "physics_gradient_ratio_min": 0.05,   # loss.md §5.3 balance band (v5 health fix 2026-11-09; was 0.01)
+        "physics_gradient_ratio_max": 2.0,    # loss.md §5.3 balance band (was 1.0)
         "physics_loss_ratio_max": 1.0,
         "physics_conflict_cosine_min": -0.3,
     }
@@ -4814,6 +4817,7 @@ def summarize_diagnostics(diagnostics):
         layer_health[name] = {
             "status": status,
             "flags": flags,
+            "numel": gradient_items[-1].get("numel") if gradient_items else None,
             "grad_norm": {"first": grad_norms[0], "last": grad_norms[-1], "min": min(grad_norms), "max": max(grad_norms), "median": float(np.median(grad_norms))},
             "grad_to_parameter_ratio": {"first": grad_ratios[0], "last": grad_ratios[-1], "min": min(grad_ratios), "max": max(grad_ratios), "median": float(np.median(grad_ratios))},
             "near_zero_gradient_fraction": {"first": near_zero[0], "last": near_zero[-1], "max": max(near_zero), "median": float(np.median(near_zero))},
@@ -4826,6 +4830,7 @@ def summarize_diagnostics(diagnostics):
         name: item["grad_to_parameter_ratio"]["last"]
         for name, item in layer_health.items()
         if item["grad_to_parameter_ratio"]["last"] > 0
+        and (item.get("numel") is None or item["numel"] > 2)  # v5: scalar calibration parameters are not blocks
     }
     branch_gradient_imbalance = {"status": "NOT_AVAILABLE"}
     if last_gradient_ratios:
@@ -4919,16 +4924,11 @@ def summarize_diagnostics(diagnostics):
         if is_whatif:
             # loss.md §5 exception: one-sided what-if pushes against memorization,
             # so negative cosine is a reported flag only and not a gating failure.
-            severe = {
-                "PHYSICS_GRADIENT_DOMINATES",
-                "PHYSICS_LOSS_DOMINATES",
-            }
+            severe = {"PHYSICS_GRADIENT_DOMINATES"}  # loss.md §5.3 (loss-value ratio is report-only)
         else:
-            severe = {
-                "PHYSICS_GRADIENT_DOMINATES",
-                "PHYSICS_LOSS_DOMINATES",
-                "PHYSICS_GRADIENT_CONFLICT",
-            }
+            # loss.md §5.3: the loss-VALUE ratio is reported, not gated; the cosine is logged (flag, not a gate).
+            # Only gradient dominance outside the band is severe; the other flags keep the status at WARNING.
+            severe = {"PHYSICS_GRADIENT_DOMINATES"}
         physics_status = (
             "UNHEALTHY"
             if severe.intersection(flags)

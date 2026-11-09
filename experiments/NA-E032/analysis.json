@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E032",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Across NA-E032..NA-E034, does the fixed-b N1 degradation-law loss retain acceptable MAPE, reduce held-out fixed-b law-fit error, and pass gradient balance on every split?",
+    "outcome": "SUPPORTED",
+    "conclusion": "Raw selected-checkpoint predictions confirm split-2021 MAPE 0.076681, Acc@15 0.860, and RMSE 18.9438 cycles. Across all three splits N1 reaches MAPE 0.0976 +/- 0.0181, Acc@15 0.793 +/- 0.059, and RMSE 27.0, versus NA-E009-family 0.1087 +/- 0.0085, 0.729 +/- 0.025, and 29.4 and CPMLP 0.1778 +/- 0.0539, 0.499 +/- 0.144, and 41.4. Fixed-b law-fit falls from parent mean 0.0539 to 0.0445 (17.4% recorded reduction) and loss balance passes on every split. The pre-registered 20% law-fit gate was missed; KEEP is therefore based only on A7-NA, a post-hoc user amendment accepting any held-out reduction, and must be reported as post-hoc.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length}",
+      "experiments/NA-E009/validation_predictions.npz",
+      "experiments/NA-E032..NA-E034/validation_predictions.npz",
+      "diagnostics.json$.summary.{loss_balance,physics_balance,padding_invariance,layer_health}",
+      "LAW_FIXED_B=1 BL_SPLIT=2021 tools/law_fit_eval.py NA-E032: 0.0535, floor 0.0205, eligible 6/6",
+      "state.json$.amendments[A7-NA]"
+    ]
+  },
+  "main_symptom": "N1 improves aggregate accuracy and held-out fixed-b law fit, but the physics improvement is only 17.4%, below the pre-registered 20% gate, so the KEEP depends on post-hoc A7-NA.",
+  "causes": [
+    {
+      "id": "C1_USEFUL_LAW_REGULARIZATION",
+      "class": "objective effect: N1 supplies useful trajectory supervision",
+      "supporting_evidence": [
+        "Raw predictions give split-2021 MAPE 0.076681 versus parent NA-E009 0.099874",
+        "Three-split MAPE improves from 0.1087 to 0.0976 and RMSE from 29.4 to 27.0 cycles",
+        "Held-out fixed-b law-fit mean improves from 0.0539 to 0.0445",
+        "diagnostics.json$.summary.loss_balance.status is PASS with median R 1.555"
+      ],
+      "contradicting_evidence": [
+        "The 17.4% law-fit reduction misses the pre-registered 20% requirement",
+        "diagnostics.json$.summary.physics_balance is UNHEALTHY because weighted loss/gradient ratios trigger audit flags"
+      ],
+      "interpretation": "The matched three-split evidence supports retaining N1 under the amended rule as an accuracy-improving regularizer with a modest held-out law-fit improvement, not as proof that the original physics target was achieved.",
+      "missing_evidence": ["Final-test evidence remains locked and unused"]
+    },
+    {
+      "id": "C2_SPLIT_DEPENDENT_GRADIENT_INTERACTION",
+      "class": "cross-split heterogeneity: the auxiliary and main gradients do not align consistently",
+      "supporting_evidence": [
+        "N1-parent MAPE gains vary from 0.02319 on split 2021 to 0.00066 on split 2024",
+        "Split-42 gradient cosine becomes negative from step 61 through step 736, reaching -0.800",
+        "Only six validation cells are present per split"
+      ],
+      "contradicting_evidence": [
+        "Loss-balance median R stays inside the registered band on all three splits",
+        "All three split MAPE values are no worse than their matched parent"
+      ],
+      "interpretation": "The benefit is real in the aggregate but heterogeneous; split-42 conflict prevents a claim that N1 uniformly aligns optimization with the main objective.",
+      "missing_evidence": ["A larger held-out Na-ion cohort would be needed to localize the split interaction"]
+    }
+  ],
+  "selected_cause_id": "C1_USEFUL_LAW_REGULARIZATION",
+  "layers": [
+    {"name": "curve_enc", "role": "encode within-cycle curves", "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Finite gradients, nonzero updates, and layer-report status OK."},
+    {"name": "state_proj", "role": "project anchor-relative and fade features", "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Finite gradients, nonzero updates, and layer-report status OK."},
+    {"name": "tcn", "role": "encode masked degradation trajectory", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Finite gradients, nonzero updates, and layer-report status OK."},
+    {"name": "tcn_norm", "role": "normalize temporal residual updates", "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "No dead gradient is present, but layer_report marks this inherited block WEAK; repair the audit/scale assessment before attributing block health."},
+    {"name": "head", "role": "predict the network EOL estimate", "evidence_paths": ["diagnostics.json$.summary.layer_health.head", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Finite gradients, nonzero updates, and layer-report status OK."},
+    {"name": "gate", "role": "blend network and extrapolation estimates", "evidence_paths": ["diagnostics.json$.summary.layer_health.gate", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Late gradients are active and the confirmed gate remains a credited parent component."},
+    {"name": "ext_da/ext_dc", "role": "calibrate extrapolation corrections", "evidence_paths": ["diagnostics.json$.summary.layer_health.{ext_da,ext_dc}", "tools/layer_report.py NA-E032"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "The zero initialization makes ratio-based audit values appear EXPLODING even though absolute gradients are finite; repair the denominator-aware audit, not the retained model."},
+    {"name": "degradation_law_fixed_b", "role": "apply N1 fixed-b trajectory supervision", "evidence_paths": ["diagnostics.json$.summary.loss_balance", "LAW_FIXED_B=1 BL_SPLIT=2021 tools/law_fit_eval.py NA-E032"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "Balance passes and the three-split held-out law-fit metric decreases; retention is explicitly under post-hoc A7-NA, not the missed pre-registration."}
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {"applicable": false, "pass": null, "reason": "training_stage is full_candidate, so the screening floor does not apply. overall_gradient_health is UNHEALTHY, forcing the schema gradient gate to FAIL, but all gradients are finite, loss_balance is PASS, no block has a persistent dead gradient, and padding is invariant; the recorded run remains VALID."}
+  },
+  "decision": "KEEP",
+  "next_action": {"type": "PROMOTE", "summary": "KEEP N1 as the retained Phase-2 loss under A7-NA. Report that A7-NA was post-hoc, the pre-registered 20% law-fit reduction was missed at 17.4%, and the evidence supports only a modest held-out consistency improvement plus aggregate validation gains.", "source_cause_id": "C1_USEFUL_LAW_REGULARIZATION", "responsible_block": "degradation_law_fixed_b"}
+}
