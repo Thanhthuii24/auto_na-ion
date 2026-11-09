@@ -368,15 +368,20 @@ can still constrain the model. All statistics use training cells only unless sta
 **Supported physics:** near-linear capacity fade. Law exponent with the true EOL: b median 1.05 (0.85–1.25), fit error 1.2 % of the
 fade budget; corr(observed fade rate cycles 10–100, true fade rate (q1 − 0.8)/EOL) = 0.95 / 0.96 / 0.96.
 
-**Registered candidates (each needs a proposal, review and a decision rule fixed before running, 3 splits):**
-- **N1 `degradation_law_fixed_b`** — the §4.7 law with the Na-ion exponent fixed, b = 1 (no law head):
-  $L=\mathrm{mean}_k|q_{ref}-(q_{ref}-q_{eol})\,n_k/\hat y-q(n_k)|/(q_{ref}-q_{eol})$ on the train trajectory.
-  Rationale: the learned b of NA-E025–E028 gave the law extra freedom, so the EOL head could stay inconsistent; b = 1 is the
-  measured Na-ion physics and makes the term constrain $\hat y$ directly.
-- **N2 `observed_fade_consistency`** (label-free) — the network branch $y_{net}$ (before the gate) must agree with the cell's own
-  observed fade: $L=\mathrm{mean}_b\,\mathrm{ReLU}(|\log y_{net}-\log \hat y_{lin}|-\tau)$ for samples with $i\ge 50$, where $\hat y_{lin}$ is the
-  masked last-20-cycle line crossing 0.8 (the gate's estimate, no gradient) and τ = 0.10 (inside the extrapolation's own error at
-  i ≥ 50). Rationale: the gate mixes the two estimates but nothing makes the network branch physically consistent; this applies to
-  any input, including unlabeled ones.
-- Held-out physics metrics: N1 → tools/law_fit_eval.py (excess over the true-EOL floor); N2 → share of val samples (i ≥ 50) with
+**Registered candidates (each needs a proposal, review and a decision rule fixed before running, 3 splits) — v2 after Codex review:**
+- **N1 `degradation_law_fixed_b`** — training-time physics supervision with the measured Na-ion law (b = 1, no law head):
+  $L_{N1}=\frac1{|S|}\sum_{s\in S}\frac1K\sum_k\frac{|q_{ref,s}-(q_{ref,s}-0.8)\,n_k/\hat y_s-q_s(n_k)|}{q_{ref,s}-0.8}$
+  - $S$ = batch samples whose cell is a TRAINING cell; $\hat y_s$ = final model output de-standardised to cycles, clamped ≥ 20 (gradient flows).
+  - $q_s(n)$ = per-cycle discharge capacity / (nominal × SOC width) from the raw train pickle, median-9 smoothed (tools/build_qtraj.py);
+    $q_{ref}$ = median of cycles 1–10; threshold fixed at **0.8** (BatteryLife EOL definition — not $q$ at the label EOL).
+  - $n_k$: K = 32 evenly spaced cycles on $[1, n_{0.8}]$, $n_{0.8}$ = first smoothed cycle with $q\le 0.8$ (train cells only).
+  - Status of the trajectory: it is training-time supervision with the same standing as the EOL label (train cells only, never
+    val/test, never an input). Restricting it to the observed prefix would make N1 identical to the gate's linear extrapolation.
+  - Units: dimensionless, O(0.01–0.1) (fixed-b true-EOL scale 0.034 on split 2021).
+- **N2 `observed_fade_consistency`** (label-free) — the pre-gate network branch must agree with the cell's own observed fade:
+  $L_{N2}=\mathrm{mean}_{s\in V}\,\mathrm{ReLU}(|\log y^{cyc}_{net,s}-\log \mathrm{sg}[\hat y_{lin,s}]|-\tau)$, τ = 0.10,
+  $y^{cyc}_{net}=\mu+s\,y_{net}$ clamped ≥ 20 cycles; $\hat y_{lin}$ = the gate's masked last-20-cycle line crossing 0.8 (stop-gradient);
+  $V$ = samples with prefix i ≥ 50 whose line has negative slope and an unclamped crossing (n+1 < ŷ_lin < cap). Units: dimensionless.
+  Caveat (Codex): overlaps the gate and may erase the useful complementarity of the two branches — tested only after N1.
+- Held-out physics metrics: N1 → tools/law_fit_eval.py with b fixed to 1 and threshold 0.8 (excess over the true-EOL floor); N2 → share of val samples (i ≥ 50) with
   |log y_net − log ŷ_lin| > τ.
