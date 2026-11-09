@@ -36,7 +36,7 @@
     "validation_acc15_strictly_above": 0.68,
     "one_seed_is_preliminary_evidence_only": true,
     "final_candidate_requires_three_seed_mean": true,
-    "current_status": "phase1_target_met_by_NA-E009_group; attribution ablations owed (architecture.md 5)",
+    "current_status": "phase1 target met (NA-E009 group); ablations done (NA-E012..E020); final model frozen (N1, NA-E032..E034); one-time test done",
     "note": "target set after the CPMLP 3-split baseline",
     "paper_cpmlp_naion_test_mape": 0.274,
     "validation_reference_cpmlp_mape": 0.1778
@@ -174,7 +174,8 @@
     "counter": "optimizer_training_compute_seconds",
     "usage": {
       "experiments": 35,
-      "training_seconds": 28
+      "training_seconds": 1108.8,
+      "note": "sum of remote worker wall time (Colab A100), all runs"
     },
     "remaining": {
       "experiments": 150,
@@ -286,7 +287,7 @@
     "na_fade_net": {
       "status": "open",
       "followups": 2,
-      "note": "anchor-relative fade trajectory; ablations planned after confirmation"
+      "note": "anchor-relative fade trajectory; ablations done (anchor not credited, fade inputs and adaptive gate credited)"
     },
     "p2_voltage_sag": {
       "status": "closed",
@@ -353,5 +354,10 @@
     },
     "frozen_at": "2026-11-09 (user go)",
     "note": "No further architecture/loss selection on val after this point."
+  },
+  "reports": {
+    "independent_report": "reports/v5_independent_report.md (Gemini Argon)",
+    "gradient_diagnostics": "reports/gradient_diagnostics_v5.md",
+    "test": "phase3/TEST_RESULTS.md"
   }
 }
