@@ -4,7 +4,7 @@
   "research_mode": "loss_search_physics",
   "phase": "phase2_loss",
   "phase_status": "phase2_active",
-  "workflow_status": "awaiting_user",
+  "workflow_status": "proposal_ready",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
@@ -245,6 +245,12 @@
       "date": "2026-11-09",
       "by": "user (delegated choice to the lead: 'pick what is comparable with CPMLP')",
       "summary": "After NA-E026 missed its split-2021 law gate by 0.0013 (excess -25.8% vs -30%), the identical NA-E026 config is confirmed on splits 42 and 2024. Decision rule fixed BEFORE these runs: KEEP the degradation-law loss only if (i) the 3-split mean MAPE is <= parent 0.1087 + 0.005 and (ii) the 3-split mean held-out law-fit excess over the true-EOL floor falls >= 30% vs the parent's 3-split mean excess, and (iii) balance PASS on every split. Reported transparently as an amendment, not as the original pre-registration."
+    },
+    {
+      "id": "A6-NA",
+      "date": "2026-11-09",
+      "by": "user",
+      "summary": "Main-loss ablation: train the best Na model (NA-E009 config) with MSE on the standardised EOL (the paper's CPMLP loss) instead of Relative Huber, 3 splits (NA-E029/E030/E031), no physics term, to measure how MAPE changes. Diagnostic only; it cannot replace the frozen model unless the user decides."
     }
   ],
   "decision_metrics": {
