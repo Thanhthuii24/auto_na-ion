@@ -192,3 +192,11 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Gradient diagnostics (contribution 2): lambda 0.089, median R 0.59, cosine with the main-loss gradient +0.58 -> +0.98 (first
   aligned physics term in v5; P2 and prefix drift were -0.94 to -0.97), active fraction 0.95 -> 0.69.
 - Held-out law-fit 0.0444 vs 0.0463 (floor 0.0161): excess -6%, rule -30%. Codex: A2 path C; next = rho 1.0 only.
+
+## NA-E026 — Degradation-law physics loss, rho 1.0, Split 2021
+
+- VALID, DISCARD (physics gate). MAPE 0.0908 (parent 0.0999, gain 0.009), Acc@15 0.887, RMSE 20.4, bias -9.8; bands 0.159/0.084/0.085/0.079/0.086.
+- Gradient diagnostics: lambda 0.178, median R 1.16, cosine +0.58 -> +0.98 (aligned).
+- Held-out law-fit 0.0385 (parent 0.0463, floor 0.0161): excess -25.8%, rule -30% (needs <= 0.0372) -> missed by 0.0013.
+- Codex: close the direction; confirming on 42/2024 after seeing the near miss would move the goalposts. Recorded as a useful
+  regularisation signal, not a promoted physics candidate. Decision on any protocol amendment is the user's.
