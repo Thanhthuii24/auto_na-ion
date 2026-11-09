@@ -1,0 +1,19 @@
+step	split	run	method	val_mape	val_acc15	val_rmse	d_mape_vs_fp32	weights_kb	note
+P0	2021	NA-E032	fp32 PyTorch CPU	0.076678	0.8617	18.94	0	153.3	record 0.076681
+P0	2021	NA-E032	fp32 ONNX (onnxruntime)	0.076678			-0.000000	189.8	max rel diff 4.55e-07
+P0	42	NA-E033	fp32 PyTorch CPU	0.107611	0.7533	38.36	0	153.3	record 0.107602
+P0	42	NA-E033	fp32 ONNX (onnxruntime)	0.107611			+0.000000	189.8	max rel diff 1.62e-06
+P0	2024	NA-E034	fp32 PyTorch CPU	0.108466	0.7650	23.56	0	153.3	record 0.108473
+P0	2024	NA-E034	fp32 ONNX (onnxruntime)	0.108466			-0.000000	189.8	max rel diff 1.75e-06
+P3	2021	NA-E032	int8 dynamic (weights)	0.076477	0.8417	19.06	-0.000202	104.9	PASS (rule d_mape<=+0.001)
+P3	2021	NA-E032	int8 static QDQ (train-calibrated)	0.088936	0.7583	21.99	+0.012258	182.8	FAIL (rule d_mape<=+0.001)
+P3	42	NA-E033	int8 dynamic (weights)	0.108261	0.7467	39.07	+0.000650	104.9	PASS (rule d_mape<=+0.001)
+P3	42	NA-E033	int8 static QDQ (train-calibrated)	0.138797	0.6317	48.12	+0.031186	182.7	FAIL (rule d_mape<=+0.001)
+P3	2024	NA-E034	int8 dynamic (weights)	0.106116	0.7733	23.11	-0.002350	104.9	PASS (rule d_mape<=+0.001)
+P3	2024	NA-E034	int8 static QDQ (train-calibrated)	0.131294	0.6917	28.56	+0.022828	182.7	FAIL (rule d_mape<=+0.001)
+P3	2021	NA-E032	fp16 weights (fp32 compute)	0.076742	0.8600	18.96	+0.000064	76.6	PASS (rule d_mape<=+0.001)
+P3	2021	NA-E032	int8 static mixed (body Conv/Gemm, gate+extrapolation fp32)	0.078205	0.8867	19.08	+0.001527	111.2	FAIL (rule d_mape<=+0.001)
+P3	42	NA-E033	fp16 weights (fp32 compute)	0.107602	0.7533	38.34	-0.000009	76.6	PASS (rule d_mape<=+0.001)
+P3	42	NA-E033	int8 static mixed (body Conv/Gemm, gate+extrapolation fp32)	0.112643	0.8283	36.95	+0.005032	111.2	FAIL (rule d_mape<=+0.001)
+P3	2024	NA-E034	fp16 weights (fp32 compute)	0.108544	0.7650	23.58	+0.000078	76.6	PASS (rule d_mape<=+0.001)
+P3	2024	NA-E034	int8 static mixed (body Conv/Gemm, gate+extrapolation fp32)	0.108469	0.7833	22.87	+0.000003	111.2	PASS (rule d_mape<=+0.001)

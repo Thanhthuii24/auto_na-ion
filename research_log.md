@@ -241,3 +241,17 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - **Frozen v5 model: NaFadeNet + ExtrapGate(s=50) + N1 (NA-E032/E033/E034), 3-split val MAPE 0.0976 ± 0.0181, Acc@15 0.793.**
   Reference without physics loss: NA-E009/E010/E011 (0.1087). No further selection on val.
 - Phase 3 (TinyML) active; test stays locked until all Phase-3 variants are fixed, then one evaluation.
+
+## Phase 3 (TinyML) — P0 reference and P3 post-training quantization (host, onnxruntime), frozen N1 model
+
+- P0: CPU reproduction matches the CUDA records (|Δ MAPE| ≤ 1e-5); ONNX opset 17 export max relative diff ≤ 1.7e-6; 39,236 params, fp32 weights 153 KB.
+- P3 (rule: val Δ MAPE ≤ +0.001 vs fp32, every split; numbers in phase3/results_tinyml.tsv):
+
+| Variant | Δ MAPE 2021 / 42 / 2024 | Weight storage | Verdict |
+|---|---|---|---|
+| fp16 weights (fp32 compute) | +0.0001 / −0.0000 / +0.0001 | ~77 KB | PASS |
+| INT8 weight-only (dynamic) | −0.0002 / +0.0007 / −0.0024 | ~38 KB (105 KB ONNX file) | PASS |
+| INT8 static QDQ, everything (train-calibrated) | +0.0123 / +0.0312 / +0.0228 | — | FAIL |
+| INT8 static mixed (body Conv/Gemm INT8; extrapolation, ratios, gate fp32) | +0.0015 / +0.0050 / +0.0000 | — | FAIL (2 splits) |
+
+- Full static INT8 breaks the extrapolation/gate arithmetic (slope ×1000, ratios ×10); keeping that path in fp32 recovers most of it.
