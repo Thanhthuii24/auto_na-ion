@@ -1,0 +1,7 @@
+{
+ "id": "NA-E027",
+ "split": "42",
+ "exit_code": 0,
+ "wall_seconds": 59.6,
+ "gpu": "NVIDIA A100-SXM4-80GB"
+}
