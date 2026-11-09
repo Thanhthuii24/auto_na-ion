@@ -1,0 +1,183 @@
+
+===== NA-E034 START 2026-11-09 05:15:34 =====
+[physics] degradation_law: 16 train trajectories, K=32
+[physics] Calibrated lambda = 3.366881e-01 (rho=1.0, batch_ratios=[0.2608, 0.4235, 0.3367])
+epoch=1 epoch_steps=15/15 epoch_progress=1.000 steps=15 train_compute=0.41s val_mape=0.215839 val_acc15=0.473333
+epoch=2 epoch_steps=15/15 epoch_progress=2.000 steps=30 train_compute=0.62s val_mape=0.206371 val_acc15=0.536667
+epoch=3 epoch_steps=15/15 epoch_progress=3.000 steps=45 train_compute=0.83s val_mape=0.185291 val_acc15=0.616667
+epoch=4 epoch_steps=15/15 epoch_progress=4.000 steps=60 train_compute=1.04s val_mape=0.181363 val_acc15=0.560000
+epoch=5 epoch_steps=15/15 epoch_progress=5.000 steps=75 train_compute=1.30s val_mape=0.168122 val_acc15=0.453333
+epoch=6 epoch_steps=15/15 epoch_progress=6.000 steps=90 train_compute=1.51s val_mape=0.167948 val_acc15=0.448333
+epoch=7 epoch_steps=15/15 epoch_progress=7.000 steps=105 train_compute=1.73s val_mape=0.159245 val_acc15=0.465000
+epoch=8 epoch_steps=15/15 epoch_progress=8.000 steps=120 train_compute=1.94s val_mape=0.159119 val_acc15=0.458333
+epoch=9 epoch_steps=15/15 epoch_progress=9.000 steps=135 train_compute=2.15s val_mape=0.156265 val_acc15=0.463333
+epoch=10 epoch_steps=15/15 epoch_progress=10.000 steps=150 train_compute=2.36s val_mape=0.147213 val_acc15=0.500000
+epoch=11 epoch_steps=15/15 epoch_progress=11.000 steps=165 train_compute=2.57s val_mape=0.145915 val_acc15=0.516667
+epoch=12 epoch_steps=15/15 epoch_progress=12.000 steps=180 train_compute=2.78s val_mape=0.144676 val_acc15=0.521667
+epoch=13 epoch_steps=15/15 epoch_progress=13.000 steps=195 train_compute=2.99s val_mape=0.139749 val_acc15=0.530000
+epoch=14 epoch_steps=15/15 epoch_progress=14.000 steps=210 train_compute=3.21s val_mape=0.138970 val_acc15=0.566667
+epoch=15 epoch_steps=15/15 epoch_progress=15.000 steps=225 train_compute=3.42s val_mape=0.132439 val_acc15=0.578333
+epoch=16 epoch_steps=15/15 epoch_progress=16.000 steps=240 train_compute=3.63s val_mape=0.133298 val_acc15=0.596667
+[step=250] L_main=0.0075 L_phys=0.0463 active_frac=0.336 grad_cosine=0.3392
+epoch=17 epoch_steps=15/15 epoch_progress=17.000 steps=255 train_compute=3.89s val_mape=0.126801 val_acc15=0.623333
+epoch=18 epoch_steps=15/15 epoch_progress=18.000 steps=270 train_compute=4.10s val_mape=0.125988 val_acc15=0.636667
+epoch=19 epoch_steps=15/15 epoch_progress=19.000 steps=285 train_compute=4.32s val_mape=0.122141 val_acc15=0.690000
+epoch=20 epoch_steps=15/15 epoch_progress=20.000 steps=300 train_compute=4.53s val_mape=0.121776 val_acc15=0.681667
+epoch=21 epoch_steps=15/15 epoch_progress=21.000 steps=315 train_compute=4.74s val_mape=0.122601 val_acc15=0.688333
+epoch=22 epoch_steps=15/15 epoch_progress=22.000 steps=330 train_compute=4.95s val_mape=0.122404 val_acc15=0.695000
+epoch=23 epoch_steps=15/15 epoch_progress=23.000 steps=345 train_compute=5.16s val_mape=0.118370 val_acc15=0.725000
+epoch=24 epoch_steps=15/15 epoch_progress=24.000 steps=360 train_compute=5.38s val_mape=0.118027 val_acc15=0.726667
+epoch=25 epoch_steps=15/15 epoch_progress=25.000 steps=375 train_compute=5.59s val_mape=0.117151 val_acc15=0.736667
+epoch=26 epoch_steps=15/15 epoch_progress=26.000 steps=390 train_compute=5.80s val_mape=0.114290 val_acc15=0.748333
+epoch=27 epoch_steps=15/15 epoch_progress=27.000 steps=405 train_compute=6.01s val_mape=0.110880 val_acc15=0.761667
+epoch=28 epoch_steps=15/15 epoch_progress=28.000 steps=420 train_compute=6.23s val_mape=0.115503 val_acc15=0.745000
+epoch=29 epoch_steps=15/15 epoch_progress=29.000 steps=435 train_compute=6.45s val_mape=0.117383 val_acc15=0.735000
+epoch=30 epoch_steps=15/15 epoch_progress=30.000 steps=450 train_compute=6.66s val_mape=0.116465 val_acc15=0.735000
+epoch=31 epoch_steps=15/15 epoch_progress=31.000 steps=465 train_compute=6.87s val_mape=0.108473 val_acc15=0.765000
+epoch=32 epoch_steps=15/15 epoch_progress=32.000 steps=480 train_compute=7.08s val_mape=0.113481 val_acc15=0.745000
+epoch=33 epoch_steps=15/15 epoch_progress=33.000 steps=495 train_compute=7.29s val_mape=0.112525 val_acc15=0.750000
+[step=500] L_main=0.0054 L_phys=0.0336 active_frac=0.146 grad_cosine=0.9450
+epoch=34 epoch_steps=15/15 epoch_progress=34.000 steps=510 train_compute=7.55s val_mape=0.112759 val_acc15=0.748333
+epoch=35 epoch_steps=15/15 epoch_progress=35.000 steps=525 train_compute=7.77s val_mape=0.113821 val_acc15=0.738333
+epoch=36 epoch_steps=15/15 epoch_progress=36.000 steps=540 train_compute=7.98s val_mape=0.116516 val_acc15=0.728333
+{
+  "metrics": {
+    "mape": 0.10847299186673467,
+    "acc15": 0.765,
+    "mae": 17.938862075805662,
+    "rmse": 23.562761173507745,
+    "prediction_diagnostics": {
+      "prediction_mean": 173.24188232421875,
+      "prediction_std": 43.5588264465332,
+      "prediction_min": 109.207275390625,
+      "prediction_max": 265.69659423828125,
+      "target_mean": 169.8333282470703,
+      "target_std": 40.39148712158203,
+      "prediction_to_target_std_ratio": 1.078416011656545,
+      "mean_signed_relative_error": 0.026413220912218094,
+      "relative_error_std": 0.14200519025325775,
+      "prediction_target_correlation": 0.8483710632036604,
+      "extreme_prediction_count": 0
+    },
+    "by_prefix": {
+      "01-10": {
+        "mape": 0.17836443188844456,
+        "acc15": 0.5833333333333334,
+        "mae": 26.771381632486978,
+        "rmse": 32.94985461403878,
+        "bias": 16.100658416748047,
+        "relative_bias": 0.12848252058029175,
+        "prediction_mean": 185.9340057373047,
+        "target_mean": 169.8333282470703,
+        "sample_count": 60,
+        "unique_cell_count": 6
+      },
+      "11-25": {
+        "mape": 0.13263220680135634,
+        "acc15": 0.7222222222222222,
+        "mae": 23.03364037407769,
+        "rmse": 30.91356477321859,
+        "bias": 8.742204666137695,
+        "relative_bias": 0.047882452607154846,
+        "prediction_mean": 178.57553100585938,
+        "target_mean": 169.8333282470703,
+        "sample_count": 90,
+        "unique_cell_count": 6
+      },
+      "26-50": {
+        "mape": 0.13499964193016065,
+        "acc15": 0.5933333333333334,
+        "mae": 22.559673868815104,
+        "rmse": 27.47470876218707,
+        "bias": -1.7942332029342651,
+        "relative_bias": -0.003958192653954029,
+        "prediction_mean": 168.0391082763672,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "51-75": {
+        "mape": 0.08401525099664717,
+        "acc15": 0.94,
+        "mae": 13.589006703694661,
+        "rmse": 15.42630277213856,
+        "bias": 1.0727022886276245,
+        "relative_bias": 0.013254075311124325,
+        "prediction_mean": 170.90602111816406,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      },
+      "76-100": {
+        "mape": 0.06395197770393919,
+        "acc15": 0.86,
+        "mae": 11.078030853271484,
+        "rmse": 14.843118198918368,
+        "bias": 2.670076608657837,
+        "relative_bias": 0.016234513372182846,
+        "prediction_mean": 172.50341796875,
+        "target_mean": 169.8333282470703,
+        "sample_count": 150,
+        "unique_cell_count": 6
+      }
+    },
+    "by_domain": {
+      "NA-ion": {
+        "mape": 0.10847299186673467,
+        "acc15": 0.765,
+        "mae": 17.938862075805662,
+        "rmse": 23.562761173507745,
+        "bias": 3.4085335731506348,
+        "relative_bias": 0.026413220912218094,
+        "prediction_mean": 173.24188232421875,
+        "target_mean": 169.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    },
+    "by_eol": {
+      "low_<500": {
+        "mape": 0.10847299186673467,
+        "acc15": 0.765,
+        "mae": 17.938862075805662,
+        "rmse": 23.562761173507745,
+        "bias": 3.4085335731506348,
+        "relative_bias": 0.026413220912218094,
+        "prediction_mean": 173.24188232421875,
+        "target_mean": 169.8333282470703,
+        "sample_count": 600,
+        "unique_cell_count": 6
+      }
+    }
+  },
+  "result": {
+    "benchmark_round": "BATTERYLIFE-NA-ION-R1",
+    "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
+    "type": "loss",
+    "seed": 2024,
+    "training_compute_seconds": 7.981,
+    "validation_seconds": 6.688,
+    "wall_seconds": 37.43,
+    "num_steps": 540,
+    "runner_version": "r4-relative-huber-v2",
+    "steps_per_sec": 67.659867,
+    "num_params": 39236,
+    "model_bytes_fp32": 156944,
+    "peak_device_memory_bytes": 1427349504,
+    "best_epoch": 31,
+    "minimum_validation_mape": 0.10847299186673467,
+    "checkpoint_mape_tolerance": 0.005,
+    "best_epoch_complete": true,
+    "best_epoch_steps": 15,
+    "steps_per_epoch": 15,
+    "completed_epochs": 36,
+    "last_epoch": 36,
+    "last_epoch_steps": 15,
+    "epoch_progress": 36.0,
+    "stop_reason": "early_stopping",
+    "status": "pending_analysis",
+    "description": "Loss = Relative Huber(0.15) + lambda * L_N1, L_N1 = mean_k |q_ref - (q_ref - 0.8) n_k / y_hat - q(n_k)| / (q_ref - 0.8) (loss.md \u00a74.8 N1), rho 1.0 (the setting that kept balance PASS in NA-E026-E028), lambda calibrated per \u00a75.2. Split 2024, seed 2024.",
+    "device": "cuda"
+  }
+}
+===== NA-E034 COMPLETE =====
