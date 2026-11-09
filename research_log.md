@@ -169,3 +169,9 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - VALID, DISCARD. MAPE 0.1019 (parent 0.0999), Acc@15 0.705, balance PASS (R 0.35; cos +0.38 -> -0.94).
 - Post-hoc drift 0.0226 vs 0.0264 (-14%, needs -50%). Bands: 1-10 MAPE 0.122 -> 0.095, drift -63%; 51-75 +0.014; 76-100 +0.010, drift +60%.
 - Reviewer: the full-prefix view receives drift gradient it should not get -> next: registered one-way form (sg on the full prefix), NA-E024.
+
+## NA-E024 — One-way prefix-drift (sg on full prefix), Split 2021
+
+- VALID, DISCARD. MAPE 0.1157 (> 0.1049), drift -10.5%, 76-100 MAPE +0.027; balance PASS (R 0.51; cos +0.75 -> -0.97). Codex analysis.
+- Codex recommendation: close Phase 2. Capacity rules already satisfied by the parent, P2 irrelevant (voltage-insensitive),
+  both drift forms fail; finding = the relevant physics is already encoded by the architecture (adaptive fade-extrapolation gate).
