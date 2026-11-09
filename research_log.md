@@ -200,3 +200,5 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Held-out law-fit 0.0385 (parent 0.0463, floor 0.0161): excess -25.8%, rule -30% (needs <= 0.0372) -> missed by 0.0013.
 - Codex: close the direction; confirming on 42/2024 after seeing the near miss would move the goalposts. Recorded as a useful
   regularisation signal, not a promoted physics candidate. Decision on any protocol amendment is the user's.
+
+- **A5-NA (user, 2026-11-09):** confirm NA-E026 config on 42/2024 (NA-E027/E028); rule fixed before running: 3-split MAPE <= 0.1137, 3-split law-fit excess -30% vs parent, balance PASS on all splits.
