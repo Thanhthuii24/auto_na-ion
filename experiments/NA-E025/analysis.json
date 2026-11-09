@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E025",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does the registered degradation-law loss at rho 0.5 reduce held-out law-fit excess over the true-EOL floor by at least 30% without split-2021 MAPE above 0.1049 or BALANCE_FAIL?",
+    "outcome": "REFUTED",
+    "conclusion": "Reviewer recomputation from all 600 selected-checkpoint predictions matches the lead: best epoch 5 of 13, MAPE 0.101724, Acc@15 0.791667, RMSE 22.1053 cycles, bias -13.1014 cycles, and prediction/target spread 0.72046. The parent NA-E009 values are 0.099874, 0.743333, 22.5282, -15.9075, and 0.74972. Prefix-band MAPE is 0.1451/0.0941/0.0986/0.0932/0.1007 versus 0.1221/0.0936/0.0928/0.0932/0.1085. Balance passes at calibrated lambda 0.089016 (median R 0.594; cosine +0.577 then +0.983; active fraction 0.953 then 0.688), and MAPE passes the 0.1049 ceiling. However, held-out law-fit error is 0.0444 versus parent 0.0463 and floor 0.0161: excess falls only about 6%, not the required 30% (error <= 0.0372). The pre-registered rule therefore requires DISCARD.",
+    "evidence_paths": [
+      "validation_predictions.npz::{prediction,target,cell_id,prefix_length,signed_relative_error,absolute_relative_error}",
+      "experiments/NA-E009/validation_predictions.npz",
+      "record.json$.result.{best_epoch,completed_epochs,stop_reason}",
+      "record.json$.metrics.{mape,acc15,rmse,prediction_diagnostics,by_prefix}",
+      "diagnostics.json$.summary.{loss_balance,physics_balance,learning_dynamics,padding_invariance}",
+      "train.log: [physics] Calibrated lambda = 8.901557e-02",
+      "BL_SPLIT=2021 tools/law_fit_eval.py NA-E025: 0.0444, parent 0.0463, true-EOL floor 0.0161"
+    ]
+  },
+  "main_symptom": "The degradation-law objective materially improves Acc@15 and slightly improves RMSE and bias, but scarcely changes its defining held-out physics metric: law-fit excess falls only about 6% versus the required 30%, while overall MAPE rises by 0.00185 and 1-10 MAPE rises by 0.0230.",
+  "causes": [
+    {
+      "id": "C1_INSUFFICIENT_LAW_PRESSURE",
+      "class": "objective strength: rho 0.5 leaves usable balance-band room while the law constraint remains active and unsatisfied",
+      "supporting_evidence": [
+        "diagnostics.json$.summary.loss_balance.median_R = 0.593577, safely inside the 0.05-2.0 band",
+        "diagnostics.json$.summary.loss_balance.samples[1].active_fraction = 0.6875 at step 61, so the term is still active rather than satisfied",
+        "diagnostics.json$.summary.loss_balance.samples[*].gradient_cosine = +0.576949 and +0.983037, so the auxiliary gradient is aligned with rather than fighting the main objective",
+        "BL_SPLIT=2021 tools/law_fit_eval.py NA-E025: excess-over-floor reduction is only about 6%"
+      ],
+      "contradicting_evidence": [
+        "The weighted auxiliary/main loss-value ratio is already 0.521 at the median, although loss value is not the balance gate",
+        "Selected-checkpoint MAPE is 0.00185 worse than the parent and the selected epoch is early (5 of 13), so stronger pressure still carries generalization risk"
+      ],
+      "interpretation": "The law term reaches the encoder, remains active, and points in nearly the same direction as the main loss, but rho 0.5 does not move the held-out law-fit metric enough. Because R is only 0.59, a single rho increase to 1.0 is the evidence-led repair allowed by loss.md 5.3; it would nominally place R near 1.19, still inside the balance band, while margin and what-if range do not parameterize this loss.",
+      "missing_evidence": [
+        "A matched rho 1.0 run",
+        "Held-out law-fit error by prefix and fitted exponent b at each checkpoint"
+      ]
+    },
+    {
+      "id": "C2_PROXY_COUPLING_LIMIT",
+      "class": "objective/metric coupling: law-fit error is strongly tied to EOL prediction error and may not provide an independently controllable physics signal",
+      "supporting_evidence": [
+        "handoff/proposals/NA-E025.md Codex review: parent split-2021 law-fit error and absolute relative EOL error have Spearman 0.948 across 18 evaluated cell-prefix points",
+        "record.json$.metrics: Acc@15 improves 0.7433 to 0.7917 while held-out law-fit error improves only 0.0463 to 0.0444",
+        "record.json$.metrics.by_prefix.01-10.mape = 0.14505 versus parent 0.12208, while 76-100 improves to 0.10067 from 0.10849"
+      ],
+      "contradicting_evidence": [
+        "The true-EOL floor 0.0161 is far below both models, so the held-out trajectory has substantial achievable headroom",
+        "The learned law head is HEALTHY and updates, so the proxy is not disconnected"
+      ],
+      "interpretation": "The objective may be improving the same EOL-error geometry that drives Acc@15 without learning a separately transferable degradation law. This limits claims of independent physics evidence, but the large floor gap and healthy aligned gradients justify exactly one strength repair before closing the direction.",
+      "missing_evidence": [
+        "A decomposition of law-fit improvement at fixed EOL prediction",
+        "Saved validation exponents and per-cell trajectory residuals"
+      ]
+    },
+    {
+      "id": "C3_SIX_CELL_VARIANCE",
+      "class": "evaluation variance: split 2021 contains only six validation cells",
+      "supporting_evidence": [
+        "validation_predictions.npz::cell_id contains 6 unique cells and 600 prefix samples",
+        "diagnostics.json$.summary.learning_dynamics: minimum MAPE occurs at epoch 8, while checkpoint selection chooses epoch 5 under the accuracy-first tolerance rule"
+      ],
+      "contradicting_evidence": [
+        "The physics rejection is measured against a pre-registered split-2021 rule and misses its 30% threshold by a wide margin"
+      ],
+      "interpretation": "The small validation set makes the promising Acc@15 signal preliminary and prevents promotion from this run, but it does not override the registered rejection condition.",
+      "missing_evidence": [
+        "Splits 42 and 2024, which are not justified until a split-2021 configuration passes the contract"
+      ]
+    }
+  ],
+  "selected_cause_id": "C1_INSUFFICIENT_LAW_PRESSURE",
+  "layers": [
+    {
+      "name": "curve_enc",
+      "role": "encode each observed cycle curve",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.curve_enc", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY / OK with finite gradients and updates."
+    },
+    {
+      "name": "ext_da",
+      "role": "scaled correction to extrapolation slope calibration",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_da", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "The EXPLODING ratio is the inherited zero-initialized gate_param_scale=50 denominator artifact; gradients are finite. Repair the diagnostic normalization rather than the frozen model."
+    },
+    {
+      "name": "ext_dc",
+      "role": "scaled correction to extrapolation shift calibration",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.ext_dc", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "layer_report marks the zero-initialized parameter ratio EXPLODING although gradients are finite and diagnostics label the block HEALTHY; repair the ratio audit, not the architecture."
+    },
+    {
+      "name": "gate",
+      "role": "blend network and fade-extrapolation estimates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.gate", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY / OK with nonzero late updates and no persistent dead-gradient condition."
+    },
+    {
+      "name": "head",
+      "role": "produce the network EOL estimate",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.head", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY / OK; the contract failure concerns insufficient held-out law improvement, not a disconnected predictor."
+    },
+    {
+      "name": "law_head",
+      "role": "predict the degradation-law exponent from the NaFadeNet summary",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.law_head", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY / OK with finite gradients and the largest ordinary late update ratio; no head repair is indicated before the one allowed rho test."
+    },
+    {
+      "name": "state_proj",
+      "role": "project curve and fade-state features",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.state_proj", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY / OK with finite gradients and updates."
+    },
+    {
+      "name": "tcn",
+      "role": "model the masked causal degradation trajectory",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn", "diagnostics.json$.summary.padding_invariance", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "RETAIN",
+      "reason": "HEALTHY / OK and padding is invariant."
+    },
+    {
+      "name": "tcn_norm",
+      "role": "normalize temporal residual updates",
+      "evidence_paths": ["diagnostics.json$.summary.layer_health.tcn_norm", "tools/layer_report.py NA-E025"],
+      "persistent_dead_gradient": false,
+      "action": "REPAIR",
+      "reason": "layer_report marks it WEAK (median g/p 4.36e-4), but it is not dead and diagnostics call it HEALTHY. Audit the cross-tool threshold/report; this loss run does not justify changing the frozen architecture."
+    }
+  ],
+  "gates": {
+    "gradient": "FAIL",
+    "screen_floor": {
+      "applicable": false,
+      "pass": null,
+      "reason": "training_stage is full_candidate, so the screen floor is not applicable. The gradient gate is FAIL because overall_gradient_health is WARNING and layer_report flags ext_da/ext_dc EXPLODING plus tcn_norm WEAK. These are inherited ratio-audit warnings: all gradients are finite, the law head and encoder update, balance passes, and padding is invariant, so the run remains VALID."
+    }
+  },
+  "decision": "DISCARD",
+  "next_action": {
+    "type": "REPAIR",
+    "summary": "DISCARD this rho 0.5 configuration under its pre-registered physics rule, but classify degradation-law loss as promising under A2 because Acc@15 improves by 0.0483 with only +0.00185 MAPE and -0.42-cycle RMSE change, satisfying path C. Use the single loss.md 5.3 repair on rho only: test rho 1.0. Median R 0.59 leaves room (nominally about 1.19), both measured cosines are positive, and active fraction is still 0.69 at step 61, so stronger law pressure is evidence-led; the early selected epoch 5 makes further strengthening beyond this one capped test unwarranted.",
+    "source_cause_id": "C1_INSUFFICIENT_LAW_PRESSURE",
+    "responsible_block": "degradation-law objective strength (rho)"
+  }
+}

@@ -185,3 +185,10 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - **Phase 2 CLOSED (no gain).** Final v5 model = NA-E009 config: 3-split val MAPE 0.1087 ± 0.0085, Acc@15 0.729 ± 0.025.
   Thesis finding: physics constraints are encoded architecturally (extrapolation gate), so what-if physics losses are redundant here.
 - Next: stop and wait for the user (Phase 3 TinyML / one-time test).
+
+## NA-E025 — Phase 2 (reopened by the user): degradation-law physics loss, rho 0.5, Split 2021
+
+- VALID, DISCARD (physics gate) but promising. MAPE 0.1017 (parent 0.0999), Acc@15 0.792 (0.743), RMSE 22.1, bias -13.1, 76-100 0.1007 (0.1085).
+- Gradient diagnostics (contribution 2): lambda 0.089, median R 0.59, cosine with the main-loss gradient +0.58 -> +0.98 (first
+  aligned physics term in v5; P2 and prefix drift were -0.94 to -0.97), active fraction 0.95 -> 0.69.
+- Held-out law-fit 0.0444 vs 0.0463 (floor 0.0161): excess -6%, rule -30%. Codex: A2 path C; next = rho 1.0 only.
