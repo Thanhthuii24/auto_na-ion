@@ -2,16 +2,16 @@
   "benchmark_round": "BATTERYLIFE-NA-ION-R1",
   "workflow_version": "three-phase-relative-huber-v1",
   "research_mode": "loss_search_physics",
-  "phase": "phase2_loss",
-  "phase_status": "phase2_active",
-  "workflow_status": "analysis",
+  "phase": "phase3_tinyml",
+  "phase_status": "phase3_active",
+  "workflow_status": "planning",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
   "next_experiment_id": "NA-E035",
-  "next_action": "Codex analyses NA-E032..E034 under A7-NA; then report; N2 optional; Phase 3 / test only on user go.",
+  "next_action": "Phase 3: P0 reference reproduction of the frozen models, ONNX export, compression variants judged on val (d_mape <= +0.001), STM32 footprint; then the one-time 3-split test (user rule).",
   "active_architecture_parent": {
     "experiment": "NA-E032",
     "model": "NaFadeNet+ExtrapGate(s=50) + N1 fixed-b degradation-law loss (rho 1.0)",
@@ -155,21 +155,13 @@
       "closed_by": "user go 2026-11-08 (keep the parent)"
     },
     "phase2_loss": {
-      "status": "ACTIVE",
-      "runs": [
-        "NA-E021",
-        "NA-E022",
-        "NA-E023",
-        "NA-E024"
-      ],
-      "result": "No physics loss beat the frozen parent (split-2021 0.0999). Capacity what-if rules P0/P0c/P4b already satisfied by the architecture (0 violations > 1e-3 cycles, correct shifts -13..-70 cycles); P2 closed (model voltage-insensitive); prefix-drift two-sided (NA-E023) and one-way (NA-E024) failed their rules.",
-      "finding": "Relevant physics is already encoded by the architecture (extrapolation gate + capacity-ratio inputs).",
-      "closed_by": "Codex recommendation 2026-11-09",
-      "reopened": "user 2026-11-09: the goal is to include a physics loss; closure reverted"
+      "status": "CLOSED_TARGET_MET_A7",
+      "result": "N1 fixed-b degradation-law loss kept under A7-NA (post-hoc user rule)",
+      "frozen": "NA-E032/E033/E034"
     },
     "phase3_tinyml": {
-      "status": "LOCKED",
-      "requires": "user go (rule: stop before Phase 3)"
+      "status": "ACTIVE",
+      "unlocked_by": "user 2026-11-09 ('ok tiếp đi' after the plan: short-life check -> freeze -> Phase 3 -> one-time test)"
     }
   },
   "budget": {
@@ -331,5 +323,35 @@
       ]
     }
   },
-  "reviewers_note": "2026-11-09: Codex back; Gemini login by user"
+  "reviewers_note": "2026-11-09: Codex back; Gemini login by user",
+  "frozen_model": {
+    "name": "NaFadeNet+ExtrapGate(s=50)+N1",
+    "runs": {
+      "2021": "NA-E032",
+      "42": "NA-E033",
+      "2024": "NA-E034"
+    },
+    "params": 39236,
+    "three_split_val": {
+      "mape": 0.0976,
+      "mape_std": 0.0181,
+      "acc15": 0.793,
+      "rmse": 27.0
+    },
+    "reference_no_physics": {
+      "runs": {
+        "2021": "NA-E009",
+        "42": "NA-E010",
+        "2024": "NA-E011"
+      },
+      "mape": 0.1087
+    },
+    "short_life_val_cells_mape": {
+      "N1": 0.095,
+      "parent": 0.095,
+      "CPMLP": 0.209
+    },
+    "frozen_at": "2026-11-09 (user go)",
+    "note": "No further architecture/loss selection on val after this point."
+  }
 }

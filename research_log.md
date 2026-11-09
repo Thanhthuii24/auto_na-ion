@@ -234,3 +234,10 @@ Raw experiment artifacts remain unchanged for reproducibility.
   negative mid-training on split 42 (-0.64..-0.80).
 - Pre-registered gate (law-fit -20%) missed (-17.4%). **A7-NA (user, post-hoc):** any reduction passes -> N1 KEPT; the new
   frozen model is NA-E009 config + N1. To be reported as a post-hoc user decision.
+
+## Model freeze and Phase 3 start (2026-11-09, user go)
+
+- Short-life val cells (EOL <= 160, 5 cells): MAPE N1 0.095, parent 0.095, CPMLP 0.209; EOL-102 cell: N1 0.088 vs CPMLP 0.368.
+- **Frozen v5 model: NaFadeNet + ExtrapGate(s=50) + N1 (NA-E032/E033/E034), 3-split val MAPE 0.0976 ± 0.0181, Acc@15 0.793.**
+  Reference without physics loss: NA-E009/E010/E011 (0.1087). No further selection on val.
+- Phase 3 (TinyML) active; test stays locked until all Phase-3 variants are fixed, then one evaluation.
