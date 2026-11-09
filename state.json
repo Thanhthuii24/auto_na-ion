@@ -4,31 +4,31 @@
   "research_mode": "loss_search_physics",
   "phase": "phase2_loss",
   "phase_status": "phase2_active",
-  "workflow_status": "proposal_ready",
+  "workflow_status": "analysis",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
   "next_experiment_id": "NA-E035",
-  "next_action": "Phase 2 reopened. Plan: (1) degradation_law loss (loss.md 4.7) on the parent; criterion = accuracy not worse + trajectory-fit error falls; (2) what-if rules judged by the SATISFIED path; (3) P0 on NaFadeNet without gate as a thesis control.",
+  "next_action": "Codex analyses NA-E032..E034 under A7-NA; then report; N2 optional; Phase 3 / test only on user go.",
   "active_architecture_parent": {
-    "experiment": "NA-E009",
-    "model": "NaFadeNet+ExtrapGate(reparam s=50)",
+    "experiment": "NA-E032",
+    "model": "NaFadeNet+ExtrapGate(s=50) + N1 fixed-b degradation-law loss (rho 1.0)",
     "runs": [
-      "NA-E009",
-      "NA-E010",
-      "NA-E011"
+      "NA-E032",
+      "NA-E033",
+      "NA-E034"
     ],
     "three_split": {
-      "mape": 0.1087,
-      "mape_std": 0.0085,
-      "acc15": 0.729,
-      "acc15_std": 0.025,
-      "rmse": 29.4,
-      "rmse_std": 10.3
+      "mape": 0.0976,
+      "mape_std": 0.0181,
+      "acc15": 0.793,
+      "rmse": 27.0,
+      "law_fit_fixed_b": 0.0445
     },
-    "reason": "3-split MAPE gain 0.0387 over ExtrapGate; Phase-1 target met (program.md 1)"
+    "reason": "A7-NA: MAPE 0.0976 <= 0.1137 (and 0.011 better than NA-E009), law-fit 0.0539 -> 0.0445 (-17.4%), balance PASS on all splits",
+    "previous": "NA-E009 config without physics loss (0.1087 ± 0.0085)"
   },
   "success_criteria": {
     "same_checkpoint_required": true,
@@ -181,7 +181,7 @@
     },
     "counter": "optimizer_training_compute_seconds",
     "usage": {
-      "experiments": 32,
+      "experiments": 35,
       "training_seconds": 28
     },
     "remaining": {
@@ -251,6 +251,13 @@
       "date": "2026-11-09",
       "by": "user",
       "summary": "Main-loss ablation: train the best Na model (NA-E009 config) with MSE on the standardised EOL (the paper's CPMLP loss) instead of Relative Huber, 3 splits (NA-E029/E030/E031), no physics term, to measure how MAPE changes. Diagnostic only; it cannot replace the frozen model unless the user decides."
+    },
+    {
+      "id": "A7-NA",
+      "date": "2026-11-09",
+      "by": "user",
+      "post_hoc": true,
+      "summary": "Physics gate relaxed by the user AFTER seeing the N1 results: a physics loss passes if its held-out physics metric decreases (any reduction) instead of the pre-registered 20% (N1) / 30% (A5) reduction; MAPE ceiling and balance PASS on every split remain. Must be reported in the thesis as a post-hoc user decision."
     }
   ],
   "decision_metrics": {
@@ -316,8 +323,12 @@
       "result": "3-split MAPE 0.1049 ± 0.0121, Acc 0.791 (regulariser); law-fit excess only -15.6% -> not a credited physics loss"
     },
     "n1_fixed_b_law": {
-      "status": "open",
-      "runs": []
+      "status": "KEEP (A7-NA)",
+      "runs": [
+        "NA-E032",
+        "NA-E033",
+        "NA-E034"
+      ]
     }
   },
   "reviewers_note": "2026-11-09: Codex back; Gemini login by user"

@@ -221,3 +221,16 @@ Raw experiment artifacts remain unchanged for reproducibility.
   0.1087 ± 0.0085, 0.729 ± 0.025, 29.4 -> TIED (|diff| 0.0025 < 0.008); MSE is 3.4x less stable across splits, bias flips sign.
 - Na-ion physics search (loss.md §4.8, Codex APPROVE v2): C-rate, CE what-if, hysteresis what-if, CE-fade coupling rejected
   by pre-checks; registered N1 (fixed b = 1 degradation law, threshold 0.8) and N2 (label-free observed-fade consistency).
+
+## NA-E032..E034 — N1: fixed-b (b = 1) degradation-law physics loss, rho 1.0, 3 splits — KEPT (A7-NA)
+
+| Model | MAPE 2021/42/2024 | 3-split MAPE | Acc@15 | RMSE | fixed-b law-fit (val) |
+|---|---|---|---|---|---|
+| CPMLP | 0.1261/0.2337/0.1737 | 0.1778 ± 0.0539 | 0.499 | 41.4 | — |
+| NA-E009 (no physics loss) | 0.0999/0.1170/0.1091 | 0.1087 ± 0.0085 | 0.729 | 29.4 | 0.0539 |
+| **+ N1 physics loss** | 0.0767/0.1076/0.1085 | **0.0976 ± 0.0181** | **0.793** | **27.0** | **0.0445** |
+
+- Gradient diagnostics: lambda 0.48 / 0.24 / 0.34, median R 1.55 / 0.81 / 0.61 (balance PASS all); cosine positive on 2021/2024,
+  negative mid-training on split 42 (-0.64..-0.80).
+- Pre-registered gate (law-fit -20%) missed (-17.4%). **A7-NA (user, post-hoc):** any reduction passes -> N1 KEPT; the new
+  frozen model is NA-E009 config + N1. To be reported as a post-hoc user decision.
