@@ -5457,8 +5457,12 @@ LAW_K = 32
 
 
 def load_law_targets(path=None, k=LAW_K):
-    path = Path(path) if path else Path(__file__).resolve().parent / ".cache" / "qtraj_train_v1.pt"
-    raw = torch.load(path, weights_only=False)
+    if path is None:  # v5/v6: one train-only trajectory file per paper split (tools/build_qtraj.py)
+        split_file = Path(__file__).resolve().parent / ".cache" / f"qtraj_train_split{prepare.SPLIT}_v1.pt"
+        if not split_file.exists():  # fail closed (Codex NA-E025): never fall back to another split's trajectories
+            raise FileNotFoundError(f"missing {split_file}; run BL_SPLIT={prepare.SPLIT} tools/build_qtraj.py")
+        path = split_file
+    raw = torch.load(Path(path), weights_only=False)
     out = {}
     for fn, d in raw.items():
         q = d["q"].double().numpy()
@@ -5483,7 +5487,9 @@ def load_law_targets(path=None, k=LAW_K):
 
 def attach_law_head(model, out_dim=1):
     if getattr(model, "law_head", None) is None:
-        width = model.head.in_features
+        # v5: NaFadeNet's head is a Sequential; the law head reads the same summary vector (input of its first Linear)
+        hook_module = model.head[0] if isinstance(model.head, nn.Sequential) else model.head
+        width = hook_module.in_features
         gen = torch.Generator().manual_seed(777)
         head = nn.Linear(width, out_dim)
         with torch.no_grad():
@@ -5493,7 +5499,7 @@ def attach_law_head(model, out_dim=1):
                 head.bias.copy_(torch.tensor([0.0, -0.5, 1.4, 0.0]))
         model.law_head = head
         model._law_h = None
-        model.head.register_forward_hook(lambda m, i, o: setattr(model, "_law_h", i[0]))
+        hook_module.register_forward_hook(lambda m, i, o: setattr(model, "_law_h", i[0]))
     return model
 
 
