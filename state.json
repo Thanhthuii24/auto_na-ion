@@ -4,14 +4,14 @@
   "research_mode": "loss_search_physics",
   "phase": "phase3_tinyml",
   "phase_status": "phase3_active",
-  "workflow_status": "planning",
+  "workflow_status": "awaiting_user",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
   "run_approved": true,
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
   "next_experiment_id": "NA-E035",
-  "next_action": "Phase 3: P0 reference reproduction of the frozen models, ONNX export, compression variants judged on val (d_mape <= +0.001), STM32 footprint; then the one-time 3-split test (user rule).",
+  "next_action": "Report test results; Phase 3 on-board measurement deferred (no board/Cube.AI).",
   "active_architecture_parent": {
     "experiment": "NA-E032",
     "model": "NaFadeNet+ExtrapGate(s=50) + N1 fixed-b degradation-law loss (rho 1.0)",
@@ -130,7 +130,7 @@
     }
   },
   "active_candidates": [],
-  "test_status": "unused",
+  "test_status": "used_once",
   "prior_run_results_allowed": false,
   "phase1_stopping": {
     "minimum_valid_architecture_experiments": 20,
@@ -271,7 +271,7 @@
     "reporter": "gemini-4-argon-high",
     "guide": "multiagent.md"
   },
-  "test_scope": "unused",
+  "test_scope": "used once 2026-11-09 (phase3/test_results.json); test split fully used — no further test evaluations",
   "split_protocol": {
     "env": "BL_SPLIT",
     "splits": [

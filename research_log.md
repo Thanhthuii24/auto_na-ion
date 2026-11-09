@@ -259,3 +259,20 @@ Raw experiment artifacts remain unchanged for reproducibility.
   full-window model at every prefix of every val cell: max relative EOL difference 1.4e-7 / 2.7e-7 / 2.3e-7 (target 1e-4).
   (A first check used the relative diff of the standardised output, which explodes near 0 — 3.3e-3 on split 42 — and was
   replaced by the EOL-in-cycles metric.) Streaming state ~98 KB fp32 vs 352 KB full-window input -> fits all three boards.
+
+## ONE-TIME TEST (2026-11-09, user go; plan committed before opening: phase3/test_plan.json; results phase3/test_results.json)
+
+| Model | Test MAPE 2021 / 42 / 2024 | 3-split test MAPE | Acc@15 | RMSE |
+|---|---|---|---|---|
+| Dummy (train mean) | 0.4452 / 0.3796 / 0.3866 | 0.4038 ± 0.0360 (paper 0.404 ± 0.029) | 0.067 | 64.3 |
+| CPMLP local (Relative Huber) | 0.3075 / 0.2542 / 0.2350 | 0.2656 ± 0.0376 (paper CPMLP 0.274 ± 0.026) | 0.275 | 65.7 |
+| NaFadeNet+ExtrapGate, no physics loss | 0.2536 / 0.1715 / 0.1479 | 0.1910 ± 0.0555 | 0.394 | 47.8 |
+| **FROZEN: + N1 physics loss (fp32)** | 0.2452 / 0.1467 / 0.1334 | **0.1751 ± 0.0610** | **0.515** | **45.3** |
+| N1 INT8 weight-only | 0.2454 / 0.1474 / 0.1346 | 0.1758 ± 0.0606 | 0.513 | 45.4 |
+| N1 fp16 weights | 0.2451 / 0.1467 / 0.1334 | 0.1751 ± 0.0610 | 0.515 | 45.3 |
+
+- Dummy and local CPMLP reproduce the paper's test numbers, so the benchmark is matched. The frozen model beats CPMLP by
+  0.091 test MAPE (-34% relative) and the paper's best Na-ion model (CPTransformer 0.255) as well; the N1 physics loss
+  improves on the same architecture without it on every split (0.1910 -> 0.1751). INT8 weight-only costs +0.0007.
+- Hardest test cells: the long-life cell 1-3-62 (EOL 268, MAPE 0.28-0.41 on all models) and short-life cells on split 2021.
+- TEST SPLIT FULLY USED. No further test evaluations.
