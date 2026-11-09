@@ -348,3 +348,35 @@ Every 250 steps, for each term $j$ with active samples, log:
 * `physics_loss_weight != 0.0` or `extra_loss_weight != 0.0` while in Phase 1.
 * `main_loss != relative_huber` or `delta != 0.15`.
 * In Phase 2, a proposed loss is not one of the registered implementations above.
+
+## 4.8 v5 Na-ion physics candidates (registered 2026-11-09, user request; pre-checks on the locked caches)
+
+**Context.** The frozen parent (NA-E009, NaFadeNet + adaptive extrapolation gate) already satisfies the capacity what-if rules
+(P0/P0c/P4b: 0 violations > 1e-3 cycles, correct shifts −13…−70 cycles). P2 (NA-E021/E022), prefix drift (NA-E023/E024) and the
+learned-exponent degradation law (NA-E025–E028, A5-NA) failed their physics gates. Pre-checks below decide which Na-ion physics
+can still constrain the model. All statistics use training cells only unless stated (val only for held-out metrics).
+
+**Pre-check results (rejected as losses — do not run):**
+
+| Candidate | Physics | Pre-check (splits 2021 / 42 / 2024) | Verdict |
+|---|---|---|---|
+| C-rate monotonicity | higher current → faster ageing | corr(log EOL, peak charge current) = +0.55 (all cells, wrong sign; every cell is logged as a 2.5C protocol, the current spread is a tester artefact) | contradicts data |
+| CE what-if (P-CE) | lower Coulombic efficiency (more side reactions) → shorter life | corr(log EOL, 1−CE) = −0.55…−0.74 (right sign), but the training CE spread is only 7–9e-4; at that range the parent moves 0.02–0.05 cycles (0 shifts > 1 cycle) | sub-resolution → would act as a constant push (cf. NA-E022) |
+| Hysteresis what-if (P-H) | faster polarisation growth → shorter life | corr(log EOL, hysteresis growth) = −0.32…−0.70, but the parent moves ≤ 0.00 cycles at the training range (≤ 2.2e-3 normalised V) | sub-resolution (normalised voltage) |
+| CE–fade coupling | Na inventory lost to side reactions sets the fade rate: dq/dn ∝ (1−CE) | corr(1−CE, true fade rate) = 0.24 / 0.45 / 0.21; fitted k negative; EOL implied by CE has train MAPE 4–37 | law not supported by the data |
+
+**Supported physics:** near-linear capacity fade. Law exponent with the true EOL: b median 1.05 (0.85–1.25), fit error 1.2 % of the
+fade budget; corr(observed fade rate cycles 10–100, true fade rate (q1 − 0.8)/EOL) = 0.95 / 0.96 / 0.96.
+
+**Registered candidates (each needs a proposal, review and a decision rule fixed before running, 3 splits):**
+- **N1 `degradation_law_fixed_b`** — the §4.7 law with the Na-ion exponent fixed, b = 1 (no law head):
+  $L=\mathrm{mean}_k|q_{ref}-(q_{ref}-q_{eol})\,n_k/\hat y-q(n_k)|/(q_{ref}-q_{eol})$ on the train trajectory.
+  Rationale: the learned b of NA-E025–E028 gave the law extra freedom, so the EOL head could stay inconsistent; b = 1 is the
+  measured Na-ion physics and makes the term constrain $\hat y$ directly.
+- **N2 `observed_fade_consistency`** (label-free) — the network branch $y_{net}$ (before the gate) must agree with the cell's own
+  observed fade: $L=\mathrm{mean}_b\,\mathrm{ReLU}(|\log y_{net}-\log \hat y_{lin}|-\tau)$ for samples with $i\ge 50$, where $\hat y_{lin}$ is the
+  masked last-20-cycle line crossing 0.8 (the gate's estimate, no gradient) and τ = 0.10 (inside the extrapolation's own error at
+  i ≥ 50). Rationale: the gate mixes the two estimates but nothing makes the network branch physically consistent; this applies to
+  any input, including unlabeled ones.
+- Held-out physics metrics: N1 → tools/law_fit_eval.py (excess over the true-EOL floor); N2 → share of val samples (i ≥ 50) with
+  |log y_net − log ŷ_lin| > τ.
