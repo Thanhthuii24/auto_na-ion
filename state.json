@@ -3,7 +3,7 @@
   "workflow_version": "three-phase-relative-huber-v1",
   "research_mode": "loss_search_physics",
   "phase": "phase2_loss",
-  "phase_status": "phase2_active",
+  "phase_status": "phase2_closed",
   "workflow_status": "awaiting_user",
   "protocol_status": "locked",
   "protocol_fingerprint": "574776f5538e17583f381ab2bd9f3b38fd87db6793e47b2dde3963023f8f29ea",
@@ -11,7 +11,7 @@
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
   "next_experiment_id": "NA-E025",
-  "next_action": "Codex recommends closing Phase 2 (physics already encoded by the architecture). Waiting for the user decision.",
+  "next_action": "STOP and report to the user. Final model = NA-E009 config (NaFadeNet+ExtrapGate s=50), 3-split val 0.1087 ± 0.0085. Wait for user go: Phase 3 (TinyML) and/or the one-time 3-split test evaluation.",
   "active_architecture_parent": {
     "experiment": "NA-E009",
     "model": "NaFadeNet+ExtrapGate(reparam s=50)",
@@ -155,13 +155,20 @@
       "closed_by": "user go 2026-11-08 (keep the parent)"
     },
     "phase2_loss": {
-      "status": "ACTIVE",
-      "unlocked_by": "user 2026-11-08",
-      "frozen_model": "NA-E009 config"
+      "status": "CLOSED_NO_GAIN",
+      "runs": [
+        "NA-E021",
+        "NA-E022",
+        "NA-E023",
+        "NA-E024"
+      ],
+      "result": "No physics loss beat the frozen parent (split-2021 0.0999). Capacity what-if rules P0/P0c/P4b already satisfied by the architecture (0 violations > 1e-3 cycles, correct shifts -13..-70 cycles); P2 closed (model voltage-insensitive); prefix-drift two-sided (NA-E023) and one-way (NA-E024) failed their rules.",
+      "finding": "Relevant physics is already encoded by the architecture (extrapolation gate + capacity-ratio inputs).",
+      "closed_by": "Codex recommendation 2026-11-09"
     },
     "phase3_tinyml": {
       "status": "LOCKED",
-      "requires": "Phase 2 closed (A3)"
+      "requires": "user go (rule: stop before Phase 3)"
     }
   },
   "budget": {

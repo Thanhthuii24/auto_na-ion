@@ -175,3 +175,13 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - VALID, DISCARD. MAPE 0.1157 (> 0.1049), drift -10.5%, 76-100 MAPE +0.027; balance PASS (R 0.51; cos +0.75 -> -0.97). Codex analysis.
 - Codex recommendation: close Phase 2. Capacity rules already satisfied by the parent, P2 irrelevant (voltage-insensitive),
   both drift forms fail; finding = the relevant physics is already encoded by the architecture (adaptive fade-extrapolation gate).
+
+## NA-E024 — One-way prefix-drift (sg on full prefix), Split 2021; Phase 2 CLOSED
+
+- VALID, DISCARD. MAPE 0.1157 (> 0.1049), drift -10.5% (needs -50%), 76-100 MAPE 0.1351 (+0.027). Balance PASS (R 0.51; cos +0.75 -> -0.97).
+- Codex: close Phase 2. Capacity rules are already satisfied by the architecture, P2 is irrelevant (voltage-insensitive model),
+  both drift forms failed; rho 0.25 would weaken an already insufficient term; §4.5 asymmetry points the wrong way for the
+  parent's under-prediction.
+- **Phase 2 CLOSED (no gain).** Final v5 model = NA-E009 config: 3-split val MAPE 0.1087 ± 0.0085, Acc@15 0.729 ± 0.025.
+  Thesis finding: physics constraints are encoded architecturally (extrapolation gate), so what-if physics losses are redundant here.
+- Next: stop and wait for the user (Phase 3 TinyML / one-time test).
