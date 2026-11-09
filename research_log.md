@@ -255,3 +255,7 @@ Raw experiment artifacts remain unchanged for reproducibility.
 | INT8 static mixed (body Conv/Gemm INT8; extrapolation, ratios, gate fp32) | +0.0015 / +0.0050 / +0.0000 | — | FAIL (2 splits) |
 
 - Full static INT8 breaks the extrapolation/gate arithmetic (slope ×1000, ratios ×10); keeping that path in fp32 recovers most of it.
+- P1 streaming (phase3/p1_streaming.py): per-cycle encoding + cached causal-TCN states + running q_d history reproduce the
+  full-window model at every prefix of every val cell: max relative EOL difference 1.4e-7 / 2.7e-7 / 2.3e-7 (target 1e-4).
+  (A first check used the relative diff of the standardised output, which explodes near 0 — 3.3e-3 on split 42 — and was
+  replaced by the EOL-in-cycles metric.) Streaming state ~98 KB fp32 vs 352 KB full-window input -> fits all three boards.
