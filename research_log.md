@@ -214,3 +214,10 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - A5-NA: MAPE ceiling pass, balance PASS on all splits, law-fit excess 0.0207 -> 0.0175 (-15.6%, needs -30%) -> DISCARD.
 - Codex: the loss acts as a useful accuracy regulariser but does not materially enforce the degradation law; report it as a
   negative physics result and keep the credited physics-informed architecture (fade inputs + adaptive extrapolation gate).
+
+## NA-E029..E031 — A6-NA main-loss ablation (MSE instead of Relative Huber on the frozen model)
+
+- MSE 3-split MAPE 0.1062 ± 0.0292 (0.0727 / 0.1203 / 0.1256), Acc@15 0.765 ± 0.159, RMSE 27.7 vs Relative Huber
+  0.1087 ± 0.0085, 0.729 ± 0.025, 29.4 -> TIED (|diff| 0.0025 < 0.008); MSE is 3.4x less stable across splits, bias flips sign.
+- Na-ion physics search (loss.md §4.8, Codex APPROVE v2): C-rate, CE what-if, hysteresis what-if, CE-fade coupling rejected
+  by pre-checks; registered N1 (fixed b = 1 degradation law, threshold 0.8) and N2 (label-free observed-fade consistency).

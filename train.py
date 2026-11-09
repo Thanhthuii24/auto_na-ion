@@ -5530,6 +5530,51 @@ def degradation_law_loss(model, predictions, cell_ids, law_targets, scaler, targ
 
 
 
+def load_law_targets_fixed(path=None, k=LAW_K):
+    """loss.md §4.8 N1: train trajectories on [1, n_0.8], n_0.8 = first smoothed cycle with q <= 0.8; q_eol fixed at 0.8."""
+    raw_path = Path(path) if path else Path(__file__).resolve().parent / ".cache" / f"qtraj_train_split{prepare.SPLIT}_v1.pt"
+    if not raw_path.exists():
+        raise FileNotFoundError(f"missing {raw_path}; run BL_SPLIT={prepare.SPLIT} tools/build_qtraj.py")
+    out = {}
+    for fn_, d in torch.load(raw_path, weights_only=False).items():
+        q = d["q"].double().numpy(); good = np.isfinite(q)
+        if good.sum() < 12:
+            continue
+        qs = np.interp(np.arange(len(q)), np.where(good)[0], q[good])
+        qs = np.median(np.lib.stride_tricks.sliding_window_view(np.pad(qs, 4, mode="edge"), 9), axis=1)
+        below = np.where(qs <= 0.8)[0]
+        if not below.size:
+            continue
+        n_end = int(below[0]) + 1
+        q_ref = float(np.median(qs[: min(10, n_end)]))
+        if n_end < 12 or q_ref - 0.8 < 0.02:
+            continue
+        n = np.resize(np.unique(np.round(np.linspace(1, n_end, k)).astype(int)), k)
+        out[fn_] = (torch.tensor(n, dtype=torch.float32), torch.tensor(qs[n - 1], dtype=torch.float32), q_ref, 0.8)
+    return out
+
+
+def degradation_law_fixed_b_loss(model, predictions, cell_ids, law_targets, scaler, target_transform="standard"):
+    """loss.md §4.8 N1: mean_k |q_ref - (q_ref - 0.8) n_k / y_hat - q(n_k)| / (q_ref - 0.8), b = 1, no law head."""
+    idx = [k for k, c in enumerate(cell_ids) if c in law_targets]
+    if not idx:
+        z = predictions.sum() * 0.0
+        return z, {"total": z, "active_fraction": 0.0, "monotonic_violation_rate": 0.0, "monotonicity": z, "reconstruction": z}
+    dev = predictions.device
+    sel = torch.tensor(idx, device=dev)
+    pred = predictions[sel]
+    y_hat = (torch.exp(pred.clamp(max=12.0)) if target_transform == "log" else pred * scaler.scale + scaler.mean).clamp_min(20.0)
+    n = torch.stack([law_targets[cell_ids[k]][0] for k in idx]).to(dev)
+    q = torch.stack([law_targets[cell_ids[k]][1] for k in idx]).to(dev)
+    q_ref = torch.tensor([law_targets[cell_ids[k]][2] for k in idx], device=dev, dtype=q.dtype)
+    budget = (q_ref - 0.8)[:, None]
+    err = (q_ref[:, None] - budget * n / y_hat[:, None] - q).abs() / budget
+    loss = err.mean()
+    active = float((err.mean(dim=1) > 0.05).float().mean().item())
+    return loss, {"total": loss, "active_fraction": active, "monotonic_violation_rate": active,
+                  "monotonicity": loss, "reconstruction": torch.tensor(0.0, device=dev), "coverage": len(idx) / max(len(cell_ids), 1)}
+
+
 def degradation_law2_loss(model, predictions, cell_ids, law_targets, scaler, target_transform="standard"):
     """Two-term law with its OWN EOL parameter (R4-E048):
     y_law = stopgrad(y_hat) * exp(d);  q_hat(n) = q_ref - (q_ref - q_eol) * [w (n/y_law)^b1 + (1-w) (n/y_law)^b2]
@@ -6554,7 +6599,7 @@ def evaluate_physics_health(
     if config.get("physics_loss_weight", 0.0) <= 0:
         return {"status": "NOT_APPLICABLE"}
     physics_type = config.get("physics_type", "monotonicity")
-    if physics_type in {"degradation_law", "degradation_law2", "timewarp_aug"}:
+    if physics_type in {"degradation_law", "degradation_law2", "degradation_law_fixed_b", "timewarp_aug"}:
         return {"status": "NOT_APPLICABLE", "reason": "law targets exist for train cells only (val trajectories are never read)"}
     if physics_type in WHATIF_PHYSICS_TYPES:
         if bounds_by_domain is None and physics_type not in ("whatif_trend_p4", "whatif_trend_p4b"):
@@ -6787,7 +6832,8 @@ def run(experiment_id, proposal_path):
     physics_rng = None
     lambda_p5 = None
     law_targets = None
-    law_fn = degradation_law2_loss if physics_type == "degradation_law2" else degradation_law_loss
+    law_fn = {"degradation_law2": degradation_law2_loss,
+              "degradation_law_fixed_b": degradation_law_fixed_b_loss}.get(physics_type, degradation_law_loss)
     tw_rng = torch.Generator().manual_seed(config["seed"] + 20000)
     tw_cal_rng = torch.Generator().manual_seed(config["seed"] + 30000)
     if physics_type == "timewarp_aug":
@@ -6795,9 +6841,9 @@ def run(experiment_id, proposal_path):
         aux_train = lambda model_, pr_, b_: timewarp_aug_loss(model_, b_, scaler, config, tw_rng, device, target_transform)
     else:
         aux_cal = aux_train = lambda model_, pr_, b_: law_fn(model_, pr_, list(b_["cell_id"]), law_targets, scaler, target_transform)
-    if physics_weight > 0 and physics_type in {"degradation_law", "degradation_law2", "timewarp_aug"}:
+    if physics_weight > 0 and physics_type in {"degradation_law", "degradation_law2", "degradation_law_fixed_b", "timewarp_aug"}:
         if physics_type != "timewarp_aug":
-            law_targets = load_law_targets()
+            law_targets = load_law_targets_fixed() if physics_type == "degradation_law_fixed_b" else load_law_targets()
             print(f"[physics] degradation_law: {len(law_targets)} train trajectories, K={LAW_K}", flush=True)
         gen = getattr(train_loader, "generator", None)
         saved_gen_state = gen.get_state() if gen is not None else None
@@ -6951,7 +6997,7 @@ def run(experiment_id, proposal_path):
             optimizer.zero_grad(set_to_none=True)
             physics_components = None
             if physics_weight > 0:
-                if physics_type in {"degradation_law", "degradation_law2", "timewarp_aug"}:
+                if physics_type in {"degradation_law", "degradation_law2", "degradation_law_fixed_b", "timewarp_aug"}:
                     predictions = model(curves, masks)
                     phys_loss, physics_components = aux_train(model, predictions, batch)
                     weighted_phys = physics_weight * phys_loss

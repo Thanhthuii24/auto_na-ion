@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "experiment_id": "NA-E030",
+  "run_validity": "VALID",
+  "contract_answer": {
+    "question": "Does replacing Relative Huber with standardized-target MSE change the three-split MAPE by at least 0.008 on the frozen NA-E009 recipe?",
+    "outcome": "REFUTED",
+    "conclusion": "Direct recomputation of all 600 selected-checkpoint predictions gives split-42 MAPE 0.120335, Acc@15 0.666667, RMSE 40.5604 cycles, and bias -20.2699 cycles, versus NA-E010 at 0.116952, 0.700000, 41.2605, and -21.7183. Across NA-E029/030/031, MSE is 0.106198 +/- 0.029159 MAPE versus Relative Huber 0.108654 +/- 0.008549: the -0.002456 difference is inside the registered +/-0.008 band, so the family result is TIED. The existing split-level decision is DISCARD.",
+    "evidence_paths": ["validation_predictions.npz::{prediction,target,cell_id,prefix_length}", "experiments/NA-E010/validation_predictions.npz", "experiments/NA-E029/validation_predictions.npz", "experiments/NA-E031/validation_predictions.npz", "record.json$.{proposal,result,metrics}", "diagnostics.json$.summary.{overall_gradient_health,learning_dynamics,padding_invariance,layer_health}"]
+  },
+  "main_symptom": "On split 42 MSE raises MAPE by 0.00338 and lowers Acc@15 by 0.03333, while the completed family has substantially greater split variance and no meaningful mean-MAPE change.",
+  "causes": [
+    {
+      "id": "C1_SPLIT_SENSITIVITY",
+      "class": "evaluation variance: six validation cells per split make the MSE effect unstable",
+      "supporting_evidence": ["validation_predictions.npz::cell_id has 6 unique cells and 600 prefix samples", "MSE split MAPEs are 0.072665/0.120335/0.125594 versus Relative Huber 0.099874/0.116952/0.109135", "MSE MAPE sample std is 0.029159 versus 0.008549 for Relative Huber"],
+      "contradicting_evidence": ["Split-42 RMSE improves slightly by 0.70 cycles", "All predictions and training diagnostics are finite"],
+      "interpretation": "The small split-42 regression is not decisive alone, but together with the opposing split effects it shows that the large split-2021 gain is not robust.",
+      "missing_evidence": []
+    },
+    {
+      "id": "C2_OBJECTIVE_WEIGHTING",
+      "class": "objective tradeoff: MSE slightly changes bias and prefix allocation without improving this split",
+      "supporting_evidence": ["record.json$.metrics.by_prefix gives MSE 01-10/11-25/26-50/51-75/76-100 MAPE 0.1809/0.1529/0.1338/0.1003/0.0876", "NA-E010 parent bands are 0.1909/0.1495/0.1269/0.0942/0.0813, so only 01-10 improves while every later band worsens", "Bias remains strongly negative, moving only from -21.7183 to -20.2699 cycles, while prediction/target spread falls from 0.6667 to 0.6459"],
+      "contradicting_evidence": ["The earliest 01-10 band improves by 0.0101", "RMSE is 0.70 cycles lower"],
+      "interpretation": "MSE modestly helps the earliest prefixes and cycle-weighted RMSE, but does not fix underprediction and degrades the bulk of prefix bands and MAPE.",
+      "missing_evidence": ["A larger Na-ion validation cohort would be needed to estimate loss-by-cell interactions precisely"]
+    }
+  ],
+  "selected_cause_id": "C1_SPLIT_SENSITIVITY",
+  "layers": [
+    {"name": "NaFadeNet_trunk", "role": "encode curves and masked degradation history", "evidence_paths": ["diagnostics.json$.summary.layer_health.{curve_enc,state_proj,tcn,tcn_norm}", "diagnostics.json$.summary.padding_invariance"], "persistent_dead_gradient": false, "action": "RETAIN", "reason": "All trunk blocks have finite nonzero late gradients, padding is invariant, and the ablation does not test architecture changes."},
+    {"name": "extrapolation_gate", "role": "blend the learned EOL estimate with fade extrapolation", "evidence_paths": ["diagnostics.json$.summary.layer_health.{ext_da,ext_dc,gate,head}"], "persistent_dead_gradient": false, "action": "REPAIR", "reason": "The gate and head train normally; ext_da/ext_dc warnings come from ratios against zero initialization. Repair the diagnostic denominator, not the frozen model."},
+    {"name": "mse_main_loss", "role": "optimize squared error on standardized EOL", "evidence_paths": ["record.json$.proposal.training.main_loss", "validation_predictions.npz"], "persistent_dead_gradient": false, "action": "REMOVE", "reason": "It worsens split-42 MAPE and Acc@15, and the three-split family result is only TIED with much larger variance; retain Relative Huber as default."}
+  ],
+  "gates": {"gradient": "FAIL", "screen_floor": {"applicable": false, "pass": null, "reason": "This is a full_candidate ablation. diagnostics.json reports WARNING due to zero-initialized ext_da/ext_dc ratio artifacts; gradients are finite and no layer is persistently dead."}},
+  "decision": "DISCARD",
+  "next_action": {"type": "STOP", "summary": "The three locked splits are complete. Report MSE as TIED by the registered rule and retain Relative Huber unless the user explicitly chooses otherwise.", "source_cause_id": "C1_SPLIT_SENSITIVITY", "responsible_block": "main loss"}
+}

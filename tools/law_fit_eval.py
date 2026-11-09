@@ -3,7 +3,7 @@ For each VAL cell: real capacity trajectory q(n) up to its label EOL (raw pickle
 train.load_law_targets); predicted EOL y_hat from the checkpoint at prefixes 20/50/100 (eval mode); law error =
 min over b in [0.3, 4] of mean|q_ref - (q_ref - q_eol)(n/y_hat)^b - q(n)| / (q_ref - q_eol). Also the true-EOL floor.
 Usage: BL_SPLIT=<s> python tools/law_fit_eval.py <ID>"""
-import math, pickle, sys
+import math, os, pickle, sys
 from pathlib import Path
 import numpy as np, torch
 ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT))
@@ -16,13 +16,24 @@ def val_traj(fn, k=train.LAW_K):
     for cyc in cell["cycle_data"]:
         d = np.asarray(cyc["discharge_capacity_in_Ah"], dtype=np.float64); d = d[np.isfinite(d) & (d >= 0)]
         q.append(d.max() / (cap * w) if d.size else np.nan)
-    q = np.asarray(q); n_end = int(min(len(q), math.ceil(eol))); qs = q[:n_end].copy(); g = np.isfinite(qs)
+    q = np.asarray(q)
+    if os.environ.get("LAW_FIXED_B") == "1":  # N1 metric (loss.md §4.8): threshold fixed at 0.8, n_end = first smoothed crossing
+        g = np.isfinite(q); qs = np.interp(np.arange(len(q)), np.where(g)[0], q[g])
+        qs = np.median(np.lib.stride_tricks.sliding_window_view(np.pad(qs, 4, mode="edge"), 9), axis=1)
+        below = np.where(qs <= 0.8)[0]
+        if not below.size:
+            return None
+        n_end = int(below[0]) + 1
+        n = np.resize(np.unique(np.round(np.linspace(1, n_end, k)).astype(int)), k)
+        return n.astype(float), qs[n - 1], float(np.median(qs[:min(10, n_end)])), 0.8
+    n_end = int(min(len(q), math.ceil(eol))); qs = q[:n_end].copy(); g = np.isfinite(qs)
     qs = np.interp(np.arange(n_end), np.where(g)[0], qs[g]); pad = np.pad(qs, 4, mode="edge")
     qs = np.median(np.lib.stride_tricks.sliding_window_view(pad, 9), axis=1)
     n = np.resize(np.unique(np.round(np.linspace(1, n_end, k)).astype(int)), k)
     return n.astype(float), qs[n - 1], float(np.median(qs[:10])), float(qs[n_end - 1])
 
-BS = np.linspace(0.3, 4, 75)
+import os
+BS = np.array([1.0]) if os.environ.get("LAW_FIXED_B") == "1" else np.linspace(0.3, 4, 75)  # N1 metric: LAW_FIXED_B=1
 def law_err(n, q, qr, qe, y):
     return min(np.abs(qr - (qr - qe) * (n / y) ** b - q).mean() / (qr - qe) for b in BS)
 
@@ -32,10 +43,13 @@ m = train.build_model(ck["model"]); m.load_state_dict(ck["state_dict"], strict=F
 d = torch.load(ROOT / f".cache/batterylife_naion_split{prepare.SPLIT}_v1.pt", weights_only=False); sc = d["label_scaler"]
 rows, floor = [], []
 for c in d["cells"]["val"]:
-    n, q, qr, qe = val_traj(c["filename"]); floor.append(law_err(n, q, qr, qe, c["eol"]))
+    vt = val_traj(c["filename"])
+    if vt is None:  # N1: val cell without a smoothed 0.8 crossing is not eligible (reported below)
+        continue
+    n, q, qr, qe = vt; floor.append(law_err(n, q, qr, qe, c["eol"]))
     for P in (20, 50, 100):
         mk = torch.zeros(1, 100); mk[0, :P] = 1
         with torch.no_grad():
             y = float(m(c["tensor"][None] * mk[:, :, None, None], mk)) * sc["scale"] + sc["mean"]
         rows.append(law_err(n, q, qr, qe, max(y, 20.0)))
-print(f"{eid} split {prepare.SPLIT}: val law-fit error {np.mean(rows):.4f} (true-EOL floor {np.mean(floor):.4f})")
+print(f"{eid} split {prepare.SPLIT}: val law-fit error {np.mean(rows):.4f} (true-EOL floor {np.mean(floor):.4f}; eligible val cells {len(floor)}/{len(d['cells']['val'])})")
