@@ -129,66 +129,107 @@
 
 \newpage
 % ============================================================================
-% HÌNH 2
+% HÌNH 2 — CÁC FILE PHỤ THUỘC NHAU NHƯ THẾ NÀO
 % ============================================================================
 \begin{center}
-{\LARGE\bfseries\color{ink} Luồng file trong một vòng thí nghiệm}\\[3pt]
-{\normalsize\color{muted} 8 bước; mỗi làn là một nơi làm việc; đường đỏ là khoá an toàn}
+{\LARGE\bfseries\color{ink} Các file hoạt động với nhau như thế nào}\\[3pt]
+{\normalsize\color{muted} File nào đọc, ghi, hoặc kiểm tra file nào trong một vòng thí nghiệm}
 \end{center}
 \vspace{2mm}
 \begin{center}
-\begin{tikzpicture}[x=1cm,y=1cm]
-  \draw[lane=pRule] (0,0) rectangle (26.5,2.3);       \node[lanetag=pRule] at (0.45,1.15) {LUẬT};
-  \draw[lane=aClaude] (0,-3.1) rectangle (26.5,-0.4);  \node[lanetag=aClaude] at (0.45,-1.75) {MÁY LOCAL};
-  \draw[lane=aGem] (0,-6.1) rectangle (26.5,-3.5);     \node[lanetag=aGem] at (0.45,-4.8) {CHẠY TỪ XA};
-  \draw[lane=aCodex] (0,-9.3) rectangle (26.5,-6.5);   \node[lanetag=aCodex] at (0.45,-7.9) {KẾT QUẢ};
+\begin{tikzpicture}[x=1cm,y=1cm,
+   spec/.style={draw=pRule, fill=pRule!8, line width=0.8pt, rounded corners=3pt, align=center, font=\footnotesize\color{ink},
+                minimum width=3.4cm, minimum height=1.05cm, text width=3.25cm, inner sep=3pt},
+   code/.style={draw=ink, fill=ink, text=white, line width=0.8pt, rounded corners=3pt, align=center,
+                font=\scriptsize\ttfamily\bfseries, minimum width=3.4cm, minimum height=1.0cm, text width=3.25cm, inner sep=3pt},
+   data/.style={cylinder, shape border rotate=90, aspect=0.2, draw=aGem, fill=aGem!10, line width=0.8pt, align=center,
+                font=\footnotesize\color{ink}, minimum width=3.4cm, minimum height=1.35cm, text width=3.2cm},
+   ledger/.style={draw=pP2, fill=pP2!12, line width=0.9pt, rounded corners=3pt, align=center, font=\footnotesize\color{ink},
+                minimum width=3.4cm, minimum height=1.05cm, text width=3.25cm, inner sep=3pt},
+   rd/.style={->, line width=0.9pt, draw=line!85},
+   wr/.style={->, line width=1.5pt, draw=pP1},
+   ck/.style={->, line width=1.1pt, draw=pEnd, dashed},
+   sp/.style={->, line width=0.9pt, draw=line!60, dotted},
+   tag/.style={font=\scriptsize\bfseries\color{muted}},
+   sub/.style={font=\tiny\mdseries\sffamily},
+]
+  % ===== tầng trên: đặc tả & khoá =====
+  \node[tag, anchor=west] at (0.4,5.35) {ĐẶC TẢ \& KHOÁ};
+  \node[spec] (prot)  at (2.2,4.1)  {\ttf{protocol.md}\\{\scriptsize dữ liệu, split, chỉ số}};
+  \node[spec] (lock)  at (6.9,4.1)  {\ttf{protocol\_lock.json}\\{\scriptsize SHA protocol \& cache; lr, batch}};
+  \node[spec] (lossm) at (11.6,4.1)  {\ttf{loss.md} \textbullet{} \ttf{architecture.md}\\{\scriptsize định nghĩa loss, model}};
+  \node[spec, draw=aClaude, fill=aClaude!10] (prop) at (16.3,4.1) {\ttf{.<ID>\_proposal.json}\\{\scriptsize model, loss, split, luật loại}};
+  \node[spec] (prog)  at (25.7,4.1)  {\ttf{program.md}\\{\scriptsize luật KEEP / DISCARD}};
 
-  \node[box=pRule] (prot) at (3.6,1.15) {\ttf{protocol.md}\\\ttf{protocol\_lock.json}};
-  \node[box=pRule] (prog) at (9.0,1.15) {\ttf{program.md}\\{\scriptsize quy trình, ngưỡng}};
-  \node[box=pRule] (lossmd) at (14.4,1.15) {\ttf{loss.md}\\\ttf{architecture.md}};
-  \node[box=pEnd, line width=1.1pt] (state) at (21.6,1.15) {\ttf{state.json}\\{\scriptsize phase, ID kế tiếp, test}};
+  % ===== tầng giữa: luồng chính =====
+  \node[tag, anchor=west] at (0.4,2.55) {LUỒNG CHÍNH};
+  \node[data]  (ds)    at (2.2,0.9)  {\ttf{dataset/*.pkl}\\{\scriptsize nhãn EOL, danh sách split}};
+  \node[code]  (prep)  at (6.9,0.9)  {prepare.py\\[-1pt]{\tiny\mdseries\sffamily tiền xử lý, khoá cache}};
+  \node[data]  (cache) at (11.6,0.9)  {\ttf{.cache/*.pt}\\{\scriptsize tensor đã tiền xử lý}};
+  \node[code]  (train) at (16.3,0.9)  {train.py\\[-1pt]{\tiny\mdseries\sffamily model, loss, chẩn đoán}};
+  \node[data, draw=pP1, fill=pP1!10] (exp) at (21.0,0.9) {\ttf{experiments/<ID>/}\\{\scriptsize record, diagnostics, npz, ckpt}};
 
-  \node[box=aClaude] (prop) at (3.6,-1.75) {\textbf{Đề xuất}\\\ttf{.<ID>\_proposal.json}};
-  \node[gate=aCodex] (rev) at (9.0,-1.75) {Codex\\duyệt?};
-  \node[box=aClaude] (task) at (14.4,-1.75) {\textbf{Code}\\\ttf{handoff/tasks} $\rightarrow$ \ttf{train.py}};
-  \node[gate=pEnd] (pre) at (21.6,-1.75) {\ttf{preflight}};
+  % ===== cột phải: sổ ghi =====
+  \node[ledger] (res)   at (25.7,0.9)  {\ttf{results.tsv}\\{\scriptsize 1 dòng / thí nghiệm}};
+  \node[ledger] (log)   at (25.7,-1.0) {\ttf{research\_log.md}\\{\scriptsize diễn giải}};
+  \node[ledger, draw=pEnd, fill=pEnd!10] (state) at (25.7,-2.9) {\ttf{state.json}\\{\scriptsize phase, ID kế tiếp, test}};
 
-  \node[box=aGem] (sub) at (21.6,-4.8) {\textbf{Submit}\\\ttf{remote.py submit}};
-  \node[store=aGem] (drive) at (14.4,-4.8) {Google Drive\\\ttf{code.tar.gz}, \ttf{queue/}};
-  \node[box=aGem] (colab) at (9.0,-4.8) {\textbf{Colab GPU}\\\ttf{worker.py}: prepare + train};
-  \node[store=aGem] (out) at (3.6,-4.8) {\ttf{out/<ID>/}\\DONE / FAILED};
+  % ===== tầng dưới: kiểm tra & phân tích =====
+  \node[tag, anchor=west] at (0.4,-0.95) {KIỂM TRA \& PHÂN TÍCH};
+  \node[code, fill=aArgon, draw=aArgon] (tools) at (2.2,-2.2) {tools/*.py \textbullet{} phase3/*.py\\[-1pt]{\tiny\mdseries\sffamily đọc experiments/<ID>/}};
+  \node[data, draw=aArgon, fill=aArgon!10] (rep) at (6.9,-2.2) {\ttf{reports/}\\{\scriptsize bảng, hình, báo cáo}};
+  \node[code, fill=pEnd, draw=pEnd] (pre) at (16.3,-2.2) {workflow\_preflight.py\\[-1pt]{\tiny\mdseries\sffamily cổng trước khi chạy}};
+  \node[spec, draw=aCodex, fill=aCodex!10] (ana) at (21.0,-2.2) {\ttf{analysis.json}\\{\scriptsize reviewer viết}};
+  \node[spec] (schema) at (16.3,-4.9) {\ttf{analysis.schema.json}};
+  \node[code, fill=pP1, draw=pP1] (val) at (21.0,-4.9) {validate\_analysis.py\\[-1pt]{\tiny\mdseries\sffamily so với schema + record}};
 
-  \node[store=aCodex] (exp) at (3.6,-7.9) {\ttf{experiments/<ID>/}\\{\scriptsize record, diagnostics, npz}};
-  \node[box=aCodex] (ana) at (9.0,-7.9) {\textbf{Phân tích}\\\ttf{analysis.json} + validate};
-  \node[box=aCodex] (dec) at (14.4,-7.9) {\textbf{Quyết định}\\\ttf{results.tsv} $\rightarrow$ \ttf{research\_log}};
-  \node[box=pRule] (git) at (21.6,-7.9) {\textbf{Lưu}\\git commit};
+  % ===== cạnh: đặc tả =====
+  \draw[sp] (prot) -- node[pill, above=2pt] {SHA} (lock);
+  \draw[ck] (lock) -- node[pill, right] {SHA} (prep);
+  \draw[sp] (lossm) -- node[pill, sloped, above] {đặc tả} (train.north west);
+  \draw[rd] (prop) -- node[pill, right] {đọc} (train);
+  \draw[sp] (prog) -- node[pill, right] {luật} (res);
 
-  \foreach \n/\c/\t in {prop/aClaude/1, task/aClaude/3, sub/aGem/5, ana/aCodex/6, dec/aCodex/7, git/pRule/8, exp/aGem/5}{
-     \node[num=\c] at (\n.north west) {\t};}
-  \node[num=aCodex] at (rev.north) {2};
-  \node[num=pEnd] at (pre.north west) {4};
+  % ===== cạnh: luồng chính =====
+  \draw[rd] (ds) -- node[pill, above] {đọc} (prep);
+  \draw[wr] (prep) -- node[pill, above] {tạo} (cache);
+  \draw[rd] (cache) -- node[pill, above] {đọc} (train);
+  \draw[wr] (train) -- node[pill, above] {ghi} (exp);
+  \draw[wr, rounded corners=6pt] ([xshift=9mm]train.north) -- ++(0,1.0) -| node[pill, pos=0.25, above] {thêm dòng} ([xshift=-6mm]res.north);
 
-  \draw[flow] (prot.south) -- node[pill, right] {đọc} (prop.north);
-  \draw[flow] (prop) -- (rev);
-  \draw[flow] (rev) -- node[pill, above] {APPROVE} (task);
-  \draw[loop, rounded corners=6pt] (rev.south) -- ++(0,-0.6) -| node[pill, pos=0.25, below] {REJECT $\rightarrow$ sửa} (prop.south);
-  \draw[flow] (task) -- (pre);
-  \draw[flow] (pre) -- node[pill, right] {PASS} (sub);
-  \draw[flow] (sub) -- (drive);
-  \draw[flow] (drive) -- (colab);
-  \draw[flow] (colab) -- (out);
-  \draw[flow] (out) -- node[pill, right] {fetch} (exp);
-  \draw[flow] (exp) -- (ana);
-  \draw[flow] (ana) -- (dec);
-  \draw[flow] (dec) -- (git);
-  \draw[loop, rounded corners=6pt] (git.east) -- ++(1.3,0) |- node[pill, pos=0.45, right] {vòng sau (ID + 1)} (pre.east);
-  \draw[->, line width=1.2pt, draw=pEnd] (state.south) -- node[pill, right, text=pEnd] {so SHA + ID; run trước đã có kết luận?} (pre.north);
+  % ===== cạnh: sổ ghi =====
+  \draw[wr] (res) -- node[pill, right] {1} (log);
+  \draw[wr] (log) -- node[pill, right] {2} (state);
 
-  \node[anchor=north west, text width=26cm, align=left, font=\scriptsize\color{muted}] at (0,-9.6) {
-  \textbf{\color{ink}Ba khoá an toàn:}
-  (i) \ttf{protocol\_lock.json} --- preflight từ chối nếu dữ liệu, cache, protocol hoặc lr/batch bị sửa;
-  (ii) \ttf{results.tsv} phải có kết luận thì mới chạy được ID tiếp theo;
-  (iii) \ttf{state.json} --- tập test chỉ đọc được khi người dùng cho phép (đã dùng đúng 1 lần).};
+  % ===== cạnh: preflight (cổng) =====
+  \draw[ck, rounded corners=6pt] (cache.south) |- node[pill, pos=0.75, above] {SHA cache} (pre.west);
+  \draw[ck, rounded corners=6pt] (prop.east) -- ++(0.6,0) |- node[pill, pos=0.82, above] {đúng ID?} ([yshift=3mm]pre.east);
+  \draw[ck, rounded corners=6pt] (state.west) -- ++(-0.5,0) -- ++(0,-0.9) -| node[pill, pos=0.3, below] {ID kế tiếp? test đã mở? run trước đã có kết luận (results.tsv)?} (pre.south);
+  \draw[->, line width=1.6pt, draw=pEnd] (pre) -- node[pill, left, text=pEnd] {PASS mới chạy} (train);
+
+  % ===== cạnh: phân tích =====
+  \draw[rd] (exp) -- node[pill, right] {đọc} (ana);
+  \draw[rd] (ana) -- (val);
+  \draw[rd] (schema) -- (val);
+  \draw[wr, rounded corners=6pt] (ana.east) -- ++(0.75,0) |- node[pill, pos=0.35, left] {kết luận} ([yshift=-2mm]res.west);
+  \draw[wr] (tools) -- node[pill, above] {tạo} (rep);
+
+  % ===== chú giải =====
+  \begin{scope}[shift={(0.4,-6.4)}]
+    \node[anchor=west, font=\scriptsize\bfseries\color{ink}] at (0,0) {Chú giải:};
+    \draw[rd] (1.8,0) -- (2.8,0); \node[anchor=west, font=\scriptsize] at (2.9,0) {đọc};
+    \draw[wr] (4.0,0) -- (5.0,0); \node[anchor=west, font=\scriptsize] at (5.1,0) {ghi / tạo};
+    \draw[ck] (6.7,0) -- (7.7,0); \node[anchor=west, font=\scriptsize] at (7.8,0) {kiểm tra --- sai thì dừng};
+    \draw[sp] (11.4,0) -- (12.4,0); \node[anchor=west, font=\scriptsize] at (12.5,0) {đặc tả cho người / agent đọc};
+    \node[code, minimum width=1.0cm, text width=0.8cm, minimum height=0.45cm] at (17.6,0) {.py};
+    \node[anchor=west, font=\scriptsize] at (18.2,0) {code};
+    \node[data, minimum width=0.9cm, text width=0.7cm, minimum height=0.6cm] at (19.8,0) {};
+    \node[anchor=west, font=\scriptsize] at (20.3,0) {dữ liệu};
+    \node[spec, minimum width=0.9cm, text width=0.7cm, minimum height=0.45cm] at (22.0,0) {};
+    \node[anchor=west, font=\scriptsize] at (22.5,0) {đặc tả};
+    \node[ledger, minimum width=0.9cm, text width=0.7cm, minimum height=0.45cm] at (24.1,0) {};
+    \node[anchor=west, font=\scriptsize] at (24.6,0) {sổ ghi};
+  \end{scope}
 \end{tikzpicture}
 \end{center}
 
