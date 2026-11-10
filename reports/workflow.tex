@@ -1,0 +1,198 @@
+% workflow.tex — sơ đồ workflow nghiên cứu, luồng file và vai trò agent (v5_auto / DATN)
+% Biên dịch: pdflatex workflow.tex  -> workflow.pdf
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,landscape,margin=1.2cm]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds,calc}
+\pagestyle{empty}
+
+% ---------------- màu ----------------
+\definecolor{cRule}{RGB}{226,232,240}   % luật / khoá
+\definecolor{cData}{RGB}{219,234,254}   % dữ liệu / benchmark
+\definecolor{cModel}{RGB}{220,252,231}  % kiến trúc
+\definecolor{cLoss}{RGB}{254,243,199}   % physics loss
+\definecolor{cCheck}{RGB}{252,231,243}  % kiểm tra
+\definecolor{cEdge}{RGB}{237,233,254}   % edge
+\definecolor{cTest}{RGB}{254,226,226}   % test
+\definecolor{cLine}{RGB}{51,65,85}
+\definecolor{cAgent}{RGB}{224,242,254}
+\definecolor{cHuman}{RGB}{255,237,213}
+
+\tikzset{
+  >={Stealth[length=2.6mm]},
+  base/.style={draw=cLine, rounded corners=3pt, line width=0.7pt, align=center, font=\small, inner sep=5pt},
+  stepbox/.style={base, minimum width=4.2cm, minimum height=1.55cm, text width=4.0cm},
+  file/.style={base, minimum width=3.6cm, minimum height=0.9cm, text width=3.5cm, font=\footnotesize},
+  tool/.style={base, shape=rectangle, sharp corners, minimum width=3.4cm, minimum height=0.85cm, text width=3.3cm, font=\footnotesize\ttfamily},
+  decision/.style={base, diamond, aspect=2.2, inner sep=1pt, text width=2.4cm, font=\footnotesize},
+  agent/.style={base, fill=cAgent, minimum width=3.6cm, minimum height=1.9cm, text width=3.4cm},
+  arr/.style={->, line width=0.8pt, draw=cLine},
+  darr/.style={->, line width=0.8pt, draw=cLine, dashed},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+  group/.style={draw=cLine!60, dashed, rounded corners=6pt, inner sep=8pt},
+  gtitle/.style={font=\footnotesize\bfseries, text=cLine},
+}
+
+\begin{document}
+
+% =====================================================================
+% HÌNH 1 — WORKFLOW NGHIÊN CỨU B0–B8
+% =====================================================================
+\begin{center}
+{\Large\bfseries Hình 1. Workflow nghiên cứu (B0--B8): bước, mục đích và kiểm tra}\\[2pt]
+{\small Vật lý được đưa vào ở 3 chỗ: đầu vào (B3), kiến trúc (B3), hàm mất mát (B5) --- theo phân loại ``informed ML'' (von Rueden và cs., 2021)}
+\end{center}
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[node distance=0.9cm and 0.75cm]
+  % hàng 1
+  \node[stepbox, fill=cRule] (b0) {\textbf{B0. Khoá benchmark}\\[2pt]\scriptsize dữ liệu, split, chỉ số, SHA lock, kiểm tra rò rỉ};
+  \node[stepbox, fill=cData, right=of b0] (b1) {\textbf{B1. Baseline + sanity}\\[2pt]\scriptsize Dummy, CPMLP chạy lại = số của paper};
+  \node[stepbox, fill=cData, right=of b1] (b2) {\textbf{B2. Chẩn đoán lỗi}\\[2pt]\scriptsize theo cell, prefix, điều kiện; tín hiệu vật lý mạnh nhất};
+  \node[stepbox, fill=cModel, right=of b2] (b3) {\textbf{B3. Kiến trúc mang vật lý}\\[2pt]\scriptsize Phase 1: đầu vào + cấu trúc (tỉ lệ dung lượng, ngoại suy, cổng)};
+  % hàng 2
+  \node[stepbox, fill=cCheck, below=1.5cm of b3] (b4) {\textbf{B4. Ablation + cơ chế}\\[2pt]\scriptsize bỏ--train lại, permutation, dữ liệu tổng hợp};
+  \node[stepbox, fill=cLoss, left=of b4] (b5) {\textbf{B5. Physics loss}\\[2pt]\scriptsize Phase 2: $\lambda$ theo gradient, $R$, cosine, kiểm tra độ nhạy};
+  \node[stepbox, fill=cCheck, left=of b5] (b6) {\textbf{B6. Kiểm định thống kê}\\[2pt]\scriptsize 3 split, bootstrap CI, Wilcoxon cặp};
+  \node[stepbox, fill=cEdge, left=of b6] (b7) {\textbf{B7. Nén / edge}\\[2pt]\scriptsize Phase 3: ONNX, streaming, INT8/fp16, STM32};
+  % hàng 3
+  \node[stepbox, fill=cTest, below=1.5cm of b7, minimum width=6cm, text width=5.8cm] (b8) {\textbf{B8. Test một lần + báo cáo}\\[2pt]\scriptsize kế hoạch test commit trước; báo cả luật hậu kiểm (A7)};
+
+  \draw[arr] (b0) -- (b1);
+  \draw[arr] (b1) -- (b2);
+  \draw[arr] (b2) -- (b3);
+  \draw[arr] (b3) -- (b4);
+  \draw[arr] (b4) -- (b5);
+  \draw[arr] (b5) -- (b6);
+  \draw[arr] (b6) -- (b7);
+  \draw[arr] (b7) -- (b8);
+  % vòng lặp
+  \draw[darr] (b4.north east) to[bend right=35] node[lbl, right] {chưa đạt: mô hình mới} (b3.south east);
+  \draw[darr] (b6.north) -- ++(0,0.7) -| node[lbl, pos=0.25, above] {khác biệt chưa vượt nhiễu: thêm seed / mô hình mới} ([xshift=-6mm]b3.south);
+
+  % chú thích tài liệu
+  \node[font=\scriptsize, text width=17.5cm, align=left, below=0.6cm of b8.south west, anchor=north west] (refs) {
+  \textbf{Cơ sở:}
+  B0 --- Kapoor \& Narayanan (2023), Pineau và cs. (2021);
+  B1 --- Lipton \& Steinhardt (2019), Dodge và cs. (2019);
+  B2 --- Severson và cs. (2019), Attia và cs. (2022), Sulzer và cs. (2021);
+  B3 --- von Rueden và cs. (2021), Willard và cs. (2022), Aykol và cs. (2021);
+  B4 --- Meyes và cs. (2019), Hooker và cs. (2019), Covert và cs. (2021);
+  B5 --- Raissi và cs. (2019), Karniadakis và cs. (2021), Wang và cs. (2021), Chen và cs. (2018);
+  B6 --- Bouthillier và cs. (2021), Demšar (2006);
+  B7 --- Jacob và cs. (2018), Lin và cs. (2020), Banbury và cs. (2021);
+  B8 --- Cawley \& Talbot (2010).};
+\end{tikzpicture}
+\end{center}
+
+\newpage
+% =====================================================================
+% HÌNH 2 — LUỒNG FILE TRONG MỘT VÒNG THÍ NGHIỆM
+% =====================================================================
+\begin{center}
+{\Large\bfseries Hình 2. Luồng file trong một vòng thí nghiệm (v5\_auto)}
+\end{center}
+\vspace{1mm}
+\begin{center}
+\begin{tikzpicture}[node distance=0.55cm and 0.6cm]
+  % luật
+  \node[file, fill=cRule] (prot) {\texttt{protocol.md}\\\texttt{protocol\_lock.json}};
+  \node[file, fill=cRule, right=of prot] (prog) {\texttt{program.md}\\(quy trình, ngưỡng)};
+  \node[file, fill=cRule, right=of prog] (lossmd) {\texttt{loss.md}\\\texttt{architecture.md}};
+  \node[file, fill=cRule, right=of lossmd] (state) {\texttt{state.json}\\(phase, ID kế tiếp)};
+  \begin{scope}[on background layer]
+    \node[group, fit=(prot)(prog)(lossmd)(state), label={[gtitle]above:LUẬT (đã khoá, chỉ đọc) + TRẠNG THÁI}] (grules) {};
+  \end{scope}
+
+  % chuỗi bước
+  \node[file, fill=cModel, below=1.3cm of prot] (prop) {\textbf{\textcircled{1} Đề xuất}\\\texttt{.<ID>\_proposal.json}\\\texttt{handoff/proposals/}};
+  \node[decision, fill=cCheck, right=0.9cm of prop] (rev) {\textcircled{2} Codex\\duyệt?};
+  \node[file, fill=cModel, right=0.9cm of rev] (task) {\textbf{\textcircled{3} Code}\\\texttt{handoff/tasks/}\\\(\rightarrow\) \texttt{train.py}};
+  \node[decision, fill=cCheck, right=0.9cm of task] (pre) {\textcircled{4}\\\texttt{workflow\_}\\\texttt{preflight.py}};
+
+  \node[tool, fill=cEdge, below=1.6cm of pre] (sub) {\textrm{\textcircled{5}} remote.py submit};
+  \node[file, fill=cEdge, left=0.9cm of sub] (drive) {Google Drive\\\texttt{code.tar.gz, queue/}};
+  \node[file, fill=cEdge, left=0.9cm of drive] (colab) {Colab GPU\\\texttt{worker.py} \(\rightarrow\)\\\texttt{prepare.py + train.py}};
+  \node[file, fill=cEdge, left=0.9cm of colab] (out) {\texttt{out/<ID>/}\\DONE / FAILED};
+
+  \node[file, fill=cData, below=1.4cm of out, text width=4.2cm, minimum width=4.3cm] (exp) {\textcircled{5} \texttt{remote.py fetch} \(\rightarrow\)\\\texttt{experiments/<ID>/}\\\scriptsize record.json, diagnostics.json,\\validation\_predictions.npz, checkpoint};
+  \node[file, fill=cCheck, right=0.9cm of exp, text width=4.0cm, minimum width=4.1cm] (ana) {\textbf{\textcircled{6} Phân tích}\\\texttt{analysis.json}\\\(\rightarrow\) \texttt{validate\_analysis.py}};
+  \node[file, fill=cLoss, right=0.9cm of ana, text width=4.0cm, minimum width=4.1cm] (dec) {\textbf{\textcircled{7} Quyết định}\\\texttt{results.tsv} \(\rightarrow\) \texttt{research\_log.md}\\\(\rightarrow\) \texttt{state.json}};
+  \node[file, fill=cRule, right=0.9cm of dec] (git) {\textbf{\textcircled{8} Lưu}\\git commit \(\rightarrow\) GitHub};
+
+  % mũi tên luồng
+  \draw[arr] (grules.south -| prop.north) -- node[lbl, right] {đọc} (prop.north);
+  \draw[arr] (prop) -- (rev);
+  \draw[arr] (rev) -- node[lbl, above] {APPROVE} (task);
+  \draw[darr] (rev.south) -- ++(0,-0.55) -| node[lbl, pos=0.25, below] {REJECT: sửa} (prop.south);
+  \draw[arr] (task) -- (pre);
+  \draw[arr] (pre) -- node[lbl, right] {PASS} (sub);
+  \draw[arr] (sub) -- (drive);
+  \draw[arr] (drive) -- (colab);
+  \draw[arr] (colab) -- (out);
+  \draw[arr] (out) -- (exp);
+  \draw[arr] (exp) -- (ana);
+  \draw[arr] (ana) -- (dec);
+  \draw[arr] (dec) -- (git);
+  \node[font=\scriptsize, right=0.25cm of git, text width=2.4cm, align=left] {\(\hookrightarrow\) vòng tiếp theo\\(ID + 1), quay lại \textcircled{1}};
+  % khoá an toàn
+  \draw[darr, red!60!black] (state.south) -- ++(0,-0.6) -| node[lbl, pos=0.2, above, text=red!60!black] {preflight so SHA + ID; run trước phải có kết luận} (pre.north);
+
+  \node[font=\scriptsize, text width=24cm, align=left, below=0.55cm of exp.south west, anchor=north west] {
+  \textbf{Ba khoá an toàn nằm trong file:}
+  (i) \texttt{protocol\_lock.json} --- preflight từ chối nếu dữ liệu, cache, protocol hoặc lr/batch bị sửa (so SHA);
+  (ii) \texttt{results.tsv} phải có kết luận thì mới chạy được ID tiếp theo;
+  (iii) \texttt{state.json.test\_status} --- tập test chỉ đọc được khi người dùng cho phép (đã dùng đúng 1 lần).};
+\end{tikzpicture}
+\end{center}
+
+\newpage
+% =====================================================================
+% HÌNH 3 — VAI TRÒ AGENT VÀ FILE
+% =====================================================================
+\begin{center}
+{\Large\bfseries Hình 3. Vai trò các agent và con người, và file mỗi bên đọc / ghi}
+\end{center}
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[node distance=1.2cm and 1.6cm]
+  \node[agent, fill=cHuman, minimum width=4.2cm, text width=4.0cm] (user) {\textbf{Người dùng}\\[2pt]\scriptsize duyệt amendment, mở phase,\\mở test, chọn hướng};
+  \node[agent, below=1.3cm of user, minimum width=4.6cm, text width=4.4cm] (claude) {\textbf{Claude --- lead}\\[2pt]\scriptsize giả thuyết, proposal, quyết định,\\submit/fetch, commit};
+  \node[agent, left=3.3cm of claude] (codex) {\textbf{Codex --- reviewer}\\[2pt]\scriptsize duyệt proposal + code,\\tự tính lại số, analysis.json};
+  \node[agent, right=3.3cm of claude] (gem) {\textbf{Gemini 3.8 --- executor}\\[2pt]\scriptsize viết code theo task,\\smoke test, preflight};
+  \node[agent, below=1.6cm of codex] (argon) {\textbf{Gemini 4 Argon}\\[2pt]\scriptsize báo cáo độc lập,\\reviewer dự phòng};
+  \node[agent, fill=cEdge, below=1.6cm of gem] (colab) {\textbf{Colab worker}\\(không phải LLM)\\[2pt]\scriptsize chỉ chạy job};
+
+  % file
+  \node[file, fill=cModel, below=1.7cm of claude, text width=4.4cm, minimum width=4.5cm] (fprop) {proposal, \texttt{handoff/tasks}\\\texttt{results.tsv}, \texttt{research\_log.md},\\\texttt{state.json}};
+  \node[file, fill=cCheck, below=0.9cm of argon, text width=3.8cm] (fana) {\texttt{analysis.json},\\\texttt{handoff/reviews/}, \texttt{reports/}};
+  \node[file, fill=cData, below=0.9cm of colab, text width=3.8cm] (fout) {\texttt{out/<ID>/} \(\rightarrow\)\\\texttt{experiments/<ID>/}};
+  \node[file, fill=cModel, above=0.7cm of gem, text width=3.6cm] (ftrain) {\texttt{train.py}\\(model, loss mới)};
+
+  \draw[arr] (user) -- node[lbl, right] {quyết định (amendment A\#)} (claude);
+  \draw[arr] (claude.west) -- node[lbl, above] {proposal} (codex.east);
+  \draw[arr] ([yshift=-4mm]codex.east) -- node[lbl, below] {APPROVE / REJECT} ([yshift=-4mm]claude.west);
+  \draw[arr] (claude.east) -- node[lbl, above] {task} (gem.west);
+  \draw[arr] ([yshift=-4mm]gem.west) -- node[lbl, below] {code + kết quả test} ([yshift=-4mm]claude.east);
+  \draw[arr] (gem) -- (ftrain);
+  \draw[arr] (claude) -- node[lbl, right] {ghi} (fprop);
+  \draw[arr] (claude.south east) -- node[lbl, sloped, above] {submit} (colab.north west);
+  \draw[arr] (colab) -- (fout);
+  \draw[arr] (fout.west) -- node[lbl, below] {fetch} (fprop.east);
+  \draw[arr] (codex) -- node[lbl, left] {dự phòng} (argon);
+  \draw[arr] (argon) -- (fana);
+  \draw[arr] (codex.south east) -- node[lbl, sloped, above] {analysis} (fana.north east);
+  \draw[darr] (argon.west) -- ++(-0.9,0) |- node[lbl, pos=0.75, above] {báo cáo độc lập, chỗ lệch số} (user.west);
+
+  \node[font=\scriptsize, text width=24cm, align=left, below=0.6cm of fana.south west, anchor=north west] {
+  \textbf{Quy tắc:} hai khoá (lead $\neq$ reviewer); reviewer tự tính lại số từ \texttt{validation\_predictions.npz};
+  luật quyết định ghi \emph{trước} khi chạy; hết hạn mức của Codex thì tạm dừng hoặc dùng Argon.
+  \textbf{Thực tế v5:} Gemini chưa đăng nhập phần lớn thời gian (Claude viết code, Codex review);
+  khi Codex hết hạn mức, một agent Claude độc lập làm reviewer.};
+\end{tikzpicture}
+\end{center}
+
+\end{document}
