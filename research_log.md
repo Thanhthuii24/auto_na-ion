@@ -325,4 +325,4 @@ Raw experiment artifacts remain unchanged for reproducibility.
   newlib-nano has no printf %f: values printed as scaled integers. Log: phase3/board/onboard/stream_2021.log.
 - Step F, splits 42 / 2024 (board, `phase3/board/fw/run_split.sh`): on-board val MAPE 0.107959 / 0.107425
   (identical to the host INT8 reference; Δ vs fp32 +0.000348 / -0.001041, PASS), Acc@15 0.7467 / 0.7650, ~53.5 ms per
-  new cycle. Three splits on the board: MAPE 0.097443 ± 0.017756 (fp32 0.097585 ± 0.017958), Acc@15 0.7845 ± 0.0504.
+  new cycle. Three splits on the board: MAPE 0.097443 ± 0.017754 (fp32 0.097585 ± 0.018111), Acc@15 0.7845 ± 0.0504.
