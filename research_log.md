@@ -284,3 +284,6 @@ Raw experiment artifacts remain unchanged for reproducibility.
   TCN, masked mean/last via one-hot, head; 143.3 KB weights, 82.8 KB activations, 3.55 M MACC) + C code (capacity ratios,
   cycle-1 anchor, masked line fit, gate MLP 4-16-1, mixing). E+H+C reproduces the frozen PyTorch model on all 600 val
   prefixes of split 2021 (max rel EOL diff 4.27e-07). Board not touched yet.
+- Step B (host): `stedgeai validate --target stm32h7` on the generated C-models with all 600 val prefixes per split.
+  l2r vs PyTorch: E 1.5–2.0e-7, H 1.4–3.6e-7; val MAPE from the ST C-model + C part = PyTorch exactly
+  (0.076678 / 0.107611 / 0.108466; differences ≤ 5.5e-9). Board still untouched.
