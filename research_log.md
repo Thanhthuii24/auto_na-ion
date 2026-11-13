@@ -304,3 +304,11 @@ Raw experiment artifacts remain unchanged for reproducibility.
   (+0.0037). Chosen: state_proj (Gemm_1) kept fp32 -> 57.8 KB weights (E 3.6 + H 54.2), val MAPE 0.076937 / 0.107959
   / 0.107425 (Δ +0.00026 / +0.00035 / -0.00104), PASS on all splits; ST C chain == onnxruntime. Weights fit 64 KB,
   but runtime code + C part must still be checked against the 64 KB internal flash (else XSPI2 external flash).
+- Step D/E (board, 2026-11-13): STM32Cube AI Studio validation firmware for NUCLEO-H7S3L8 (Boot in internal flash
+  19.9 KB, Appli + weights in XSPI2 NOR via external loader MX25UW25645G_NUCLEO-H7S3L8.stldr). H INT8 (split 2021,
+  state_proj fp32) validated on target with 10 val samples (AI Studio default nb_samples=10): outputs identical to the
+  host reference (max |diff| 5.8e-8, int8 output dequantized s=0.005604 zp=93) -> on-board val MAPE = host INT8 chain
+  0.076937. Latency 52.96 ms per full 100-cycle window (31.78 M cycles, 8.74 cycles/MACC, 600 MHz, I/D-cache on).
+  Largest layer: state_proj Dense in fp32 (9.2 ms, 17 %). Memory: app flash 160.9 KB (ext), RAM 99.8 KB + DTCM 11.3 KB.
+  macOS tool fix: AI Studio calls CMake.app/Contents/MacOS/cmake, which on a case-insensitive disk opens the CMake GUI;
+  fixed by renaming MacOS/CMake -> CMake-gui.bin and linking MacOS/cmake -> ../bin/cmake (needs App Management permission).
