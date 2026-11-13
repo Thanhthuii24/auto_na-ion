@@ -291,3 +291,7 @@ Raw experiment artifacts remain unchanged for reproducibility.
   flash, 620 KB SRAM, 32 MB XSPI2 NOR flash), not the H743ZI2 written above. The host results (steps A/A2/B, `--target
   stm32h7`) still apply (same Cortex-M7 STM32H7 target family); the deployment must put weights (~155 KB fp32) in the
   external flash or compress them to fit 64 KB.
+- Step B2 (host): ST weight compression only touches dense/Gemm layers; the causal-TCN Conv weights dominate H, so the
+  total stays ~135 KB (`-c low`, Δ MAPE +0.00006…+0.00022, PASS) or ~129 KB (`-c medium`, Δ up to +0.008, FAIL) —
+  neither fits the 64 KB internal flash of the H7S3L8. Weights must go to the external XSPI2 flash, unless a
+  static INT8 (QDQ) export of E/H (C part stays fp32) keeps accuracy.

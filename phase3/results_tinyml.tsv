@@ -23,3 +23,9 @@ P4-analyze	2021	NA-E032	full-window model (100 cycles at once)		 	 	 	156.0	acti
 P4-host-validate	2021	NA-E032	ST C-model E+H (host, fp32) + C part	0.076678			+0.000000	155.4	stedgeai validate stm32h7 host, 600 val prefixes: E l2r 1.5e-7, H l2r 3.6e-7; val MAPE diff vs PyTorch +1.8e-10
 P4-host-validate	42	NA-E033	ST C-model E+H (host, fp32) + C part	0.107611			+0.000000	155.4	E l2r 1.6e-7, H l2r 2.6e-7; val MAPE diff vs PyTorch +6.3e-10
 P4-host-validate	2024	NA-E034	ST C-model E+H (host, fp32) + C part	0.108466			+0.000000	155.4	E l2r 2.0e-7, H l2r 1.4e-7; val MAPE diff vs PyTorch +5.5e-9
+P4-host-validate	2021	NA-E032	ST -c low (dense weights x4) E+H + C	0.076893			+0.000215	134.5	H weights 122.4 KB (-14%); conv weights not compressed; PASS (<= +0.001)
+P4-host-validate	42	NA-E033	ST -c low (dense weights x4) E+H + C	0.107783			+0.000172	134.5	PASS
+P4-host-validate	2024	NA-E034	ST -c low (dense weights x4) E+H + C	0.108528			+0.000061	134.5	PASS
+P4-host-validate	2021	NA-E032	ST -c medium (dense weights x8) E+H + C	0.084717			+0.008040	128.9	H weights 116.8 KB (-18%); FAIL
+P4-host-validate	42	NA-E033	ST -c medium (dense weights x8) E+H + C	0.107262			-0.000349	128.9	PASS on this split
+P4-host-validate	2024	NA-E034	ST -c medium (dense weights x8) E+H + C	0.111477			+0.003010	128.9	FAIL

@@ -9,11 +9,13 @@ from st_split_export import Enc, Head, c_part, RUNS
 ST = "/Applications/ST/STEdgeAI/4.1/Utilities/macarm/stedgeai"
 B = ROOT / "phase3" / "board"
 
+COMP = os.environ.get("ST_COMP", "lossless")   # step B2: none | lossless | low | medium
+
 def stedgeai_validate(model, npz, out):
-    r = subprocess.run([ST, "validate", "-m", str(model), "--target", "stm32h7", "-vi", str(npz), "--workspace", str(out) + "_ws",
+    r = subprocess.run([ST, "validate", "-m", str(model), "--target", "stm32h7", "-c", COMP, "-vi", str(npz), "--workspace", str(out) + "_ws",
                         "--output", str(out)], capture_output=True, text=True)
     txt = r.stdout + r.stderr
-    rows = [l for l in txt.splitlines() if "X-cross" in l or "C-model" in l or "ERROR" in l or "error" in l.lower()]
+    rows = [l for l in txt.splitlines() if "X-cross" in l or "weights (ro)" in l or "ERROR" in l or "error" in l.lower()]
     return r.returncode, rows, out / "network_val_io.npz"
 
 if __name__ == "__main__":
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     np.savez(B / f"{eid}_H_val.npz", m_inputs_1=np.stack(states), m_inputs_2=np.stack(masks), m_outputs_1=np.array(ynet, np.float32)[:, None])
     res = {}
     for part in ("E", "H"):
-        rc, rows, io = stedgeai_validate(B / f"{eid}_{part}.onnx", B / f"{eid}_{part}_val.npz", B / f"val_{eid}_{part}")
+        rc, rows, io = stedgeai_validate(B / f"{eid}_{part}.onnx", B / f"{eid}_{part}_val.npz", B / f"val_{eid}_{part}_{COMP}")
         res[part] = (rc, rows, io); print(f"[{eid} {part}] rc={rc}"); [print("   ", r[:150]) for r in rows[:6]]
     rc, _, io = res["H"]
     if rc == 0 and io.exists():
@@ -51,4 +53,4 @@ if __name__ == "__main__":
         for (fn, n, eol, qd), y_c, y_t in zip(meta, yc, ynet):
             for y, lst in ((y_c, ape_c), (y_t, ape_t)):
                 e = c_part(qd, n, float(y), G) * sc["scale"] + sc["mean"]; lst.append(abs(e - eol) / eol)
-        print(f"[{eid}] val MAPE: ST C-model (host) {np.mean(ape_c):.6f} | PyTorch {np.mean(ape_t):.6f} | diff {np.mean(ape_c) - np.mean(ape_t):+.2e} ({len(ape_c)} prefixes)")
+        print(f"[{eid} -c {COMP}] val MAPE: ST C-model (host) {np.mean(ape_c):.6f} | PyTorch {np.mean(ape_t):.6f} | diff {np.mean(ape_c) - np.mean(ape_t):+.2e} ({len(ape_c)} prefixes)")
