@@ -1,5 +1,5 @@
 """Read the on-board streaming app output (ST-LINK VCP, 115200 8N1), save it, and summarise.
-Lines: I,... (info)  P,cell,n,eol_board,eol_ref,eol_true,cyc_E,cyc_H,cyc_C  S,np,mape_board,mape_ref,maxdiff,msE,msH,msC  D,done
+Lines: I,... (info)  P,cell,n,eol_board*1e4,eol_ref*1e4,eol_true*1e4,cyc_E,cyc_H,cyc_C  S,np,mape_board,mape_ref,maxdiff,msE,msH,msC  D,done
 Usage: python serial_capture.py /dev/cu.usbmodem11302 out.log [timeout_s]"""
 import sys, time
 import numpy as np, serial
@@ -15,7 +15,7 @@ with serial.Serial(port, 115200, timeout=1) as s, open(out, "w") as f:
         if l.startswith("D,"): break
 P = np.array([[float(x) for x in l.split(",")[1:]] for l in lines if l.startswith("P,") and l.count(",") == 8])
 if len(P):
-    eb, er, et, ce, ch, cc = P[:, 2], P[:, 3], P[:, 4], P[:, 5], P[:, 6], P[:, 7]
+    eb, er, et, ce, ch, cc = P[:, 2] / 1e4, P[:, 3] / 1e4, P[:, 4] / 1e4, P[:, 5], P[:, 6], P[:, 7]
     clk = 600e6
     print(f"prefixes {len(P)}  board MAPE {np.mean(abs(eb - et) / et):.6f}  host-ref MAPE {np.mean(abs(er - et) / et):.6f}  "
           f"max|board-ref| {np.abs(eb - er).max():.2e} cycles  Acc@15 {np.mean(abs(eb - et) / et <= 0.15):.4f}")

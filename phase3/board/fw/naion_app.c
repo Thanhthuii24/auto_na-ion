@@ -6,7 +6,7 @@
  *   C  (this file): masked line fit on the last NA_WINDOW q_d values -> est; gate MLP 4->16->1 (exact GELU);
  *      y = (1-g) y_net + g z_ext;  EOL = y * NA_LABEL_SCALE + NA_LABEL_MEAN
  * Timing with the DWT cycle counter; one line per prefix over the ST-LINK VCP UART:
- *   P,<cell>,<n>,<eol_board>,<eol_host_ref>,<eol_true>,<cyc_E>,<cyc_H>,<cyc_C>
+ *   P,<cell>,<n>,<eol_board*1e4>,<eol_host_ref*1e4>,<eol_true*1e4>,<cyc_E>,<cyc_H>,<cyc_C>
  * and a summary line S,<n_prefix>,<mape_board>,<mape_ref>,<max_abs_diff>,<mean ms E>,<mean ms H>,<mean ms C>.
  * Mirrors c_part() in phase3/board/st_split_export.py. */
 #include <math.h>
@@ -78,10 +78,12 @@ void naion_app_run(void)
       ape_b += fabs(eol - cell->eol) / cell->eol; ape_r += fabs(ref - cell->eol) / cell->eol;
       if (fabs(eol - ref) > maxd) maxd = fabs(eol - ref);
       cyc_e += t1 - t0; cyc_h += t2 - t1; cyc_c += t3 - t2; np++;
-      printf("P,%d,%d,%.4f,%.4f,%.2f,%lu,%lu,%lu\r\n", c, n, eol, ref, cell->eol,
+      printf("P,%d,%d,%ld,%ld,%ld,%lu,%lu,%lu\r\n", c, n, (long)lround(eol * 1e4), (long)lround(ref * 1e4), (long)lround(cell->eol * 1e4),
              (unsigned long)(t1 - t0), (unsigned long)(t2 - t1), (unsigned long)(t3 - t2));
     }
   }
   double k = 1000.0 / SystemCoreClock / np;
-  printf("S,%d,%.6f,%.6f,%.6f,%.4f,%.4f,%.4f\r\n", np, ape_b / np, ape_r / np, maxd, cyc_e * k, cyc_h * k, cyc_c * k);
+  /* newlib-nano has no %f: values printed as integers x 1e6 (MAPE, max diff) and x 1e4 (ms) */
+  printf("S,%d,%ld,%ld,%ld,%ld,%ld,%ld\r\n", np, lround(ape_b / np * 1e6), lround(ape_r / np * 1e6), lround(maxd * 1e6),
+         lround(cyc_e * k * 1e4), lround(cyc_h * k * 1e4), lround(cyc_c * k * 1e4));
 }

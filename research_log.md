@@ -316,3 +316,10 @@ Raw experiment artifacts remain unchanged for reproducibility.
   cycle (2.0 M cycles, 6.40 cycles/MACC). H rerun (run 5): 51.25 ms per 100-cycle window, bit-exact. AI Studio kept
   validation_nb_samples=10 although 60 was requested; CLI target validation fails with E200 (C-model signature:
   activations 26068 vs 20100, AI Studio memory-pool layout differs) — 60-sample runs still pending.
+- Step F (board, 2026-11-13): own streaming firmware (AI Studio Application project as base + ST C-models enc/head +
+  `phase3/board/fw/naion_app.c`), flashed with STM32_Programmer_CLI + external loader. All 600 VAL prefixes of split
+  2021 run on the board: val MAPE 0.076944 (host INT8 ref 0.076928, fp32 0.076678 -> Δ +0.000266, PASS ≤ +0.001),
+  Acc@15 0.8417; max |board - host| 0.51 cycles (ST vs onnxruntime INT8 rounding). Latency per new cycle: E 5.41 ms
+  (curve copied from XSPI flash, activations in AXI RAM) + H 47.66 ms (full 100-cycle window) + C 0.44 ms = 53.5 ms.
+  Memory: Appli 2.31 MB in XSPI2 (2.16 MB is the embedded val data), RAM 132 KB, DTCM 10 KB, Boot 19.9 KB.
+  newlib-nano has no printf %f: values printed as scaled integers. Log: phase3/board/onboard/stream_2021.log.
