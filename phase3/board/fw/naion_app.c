@@ -45,7 +45,7 @@ void naion_app_run(void)
 {
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; DWT->CYCCNT = 0; DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
   if (ai_init()) { printf("E,ai_init failed\r\n"); return; }
-  printf("I,NA-E032 split2021 streaming E->H->C, SystemCoreClock=%lu\r\n", (unsigned long)SystemCoreClock);
+  printf("I,%s streaming E->H->C, SystemCoreClock=%lu\r\n", NA_TAG, (unsigned long)SystemCoreClock);
   double ape_b = 0, ape_r = 0, maxd = 0, cyc_e = 0, cyc_h = 0, cyc_c = 0; int np = 0;
   float *states = (float *)in_head[0], *mask = (float *)in_head[1];
   for (int c = 0; c < na_ncells; c++) {
