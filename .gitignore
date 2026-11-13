@@ -65,3 +65,12 @@ run_next.sh
 run_step.sh
 validate_analysis.py
 workflow_preflight.py
+
+# ST Edge AI generated outputs (phase3 board)
+phase3/board/val_*/
+phase3/board/ws_*/
+phase3/board/*_ws/
+phase3/board/*.onnx
+phase3/board/*.npz
+phase3/board/*_C_params.json
+phase3/board/out_*/

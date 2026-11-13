@@ -21,7 +21,11 @@ class Head(nn.Module):
         m = s.m; x = m.state_proj(states) * mk[..., None]
         for conv, norm in zip(m.tcn, m.tcn_norm):
             pad = (conv.kernel_size[0] - 1) * conv.dilation[0]
-            y = conv(F.pad(x.transpose(1, 2), (pad, 0))).transpose(1, 2)
+            k, d = conv.kernel_size[0], conv.dilation[0]; T = x.shape[1]; xt = x.transpose(1, 2); xp = torch.cat([torch.zeros(1, xt.shape[1], pad), xt], 2)   # causal left pad, no Pad op (ST INT8 codegen bug)
+            # ST INT8 has no dilated Conv: tap j = input shifted by (k-1-j)*d, concat on channels, 1x1 Conv (identical math)
+            taps = torch.cat([xp[:, :, j * d: j * d + T] for j in range(k)], 1)                  # [1, k*C, T]
+            w1 = conv.weight.permute(0, 2, 1).reshape(conv.out_channels, -1, 1)               # [C_out, k*C_in, 1]
+            y = F.conv1d(taps, w1, conv.bias).transpose(1, 2)
             x = (x + F.gelu(norm(y))) * mk[..., None]
         n = mk.sum(1).clamp_min(1.0)
         mean = x.sum(1) / n[:, None]

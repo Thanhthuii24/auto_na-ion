@@ -29,3 +29,9 @@ P4-host-validate	2024	NA-E034	ST -c low (dense weights x4) E+H + C	0.108528			+0
 P4-host-validate	2021	NA-E032	ST -c medium (dense weights x8) E+H + C	0.084717			+0.008040	128.9	H weights 116.8 KB (-18%); FAIL
 P4-host-validate	42	NA-E033	ST -c medium (dense weights x8) E+H + C	0.107262			-0.000349	128.9	PASS on this split
 P4-host-validate	2024	NA-E034	ST -c medium (dense weights x8) E+H + C	0.111477			+0.003010	128.9	FAIL
+P4-host-validate	2021	NA-E032	ST static INT8 QDQ (all Conv/Gemm) E+H + C fp32	0.075873			-0.000805	48.6	PASS on this split
+P4-host-validate	42	NA-E033	ST static INT8 QDQ (all Conv/Gemm) E+H + C fp32	0.111271			+0.003660	48.6	FAIL
+P4-host-validate	2024	NA-E034	ST static INT8 QDQ (all Conv/Gemm) E+H + C fp32	0.102401			-0.006065	48.6	PASS on this split
+P4-host-validate	2021	NA-E032	ST static INT8 QDQ, state_proj fp32 (EXCL=Gemm_1) E+H + C fp32	0.076937			+0.000259	57.8	PASS
+P4-host-validate	42	NA-E033	ST static INT8 QDQ, state_proj fp32 (EXCL=Gemm_1) E+H + C fp32	0.107959			+0.000348	57.8	PASS
+P4-host-validate	2024	NA-E034	ST static INT8 QDQ, state_proj fp32 (EXCL=Gemm_1) E+H + C fp32	0.107425			-0.001041	57.8	PASS (chosen B3 variant)

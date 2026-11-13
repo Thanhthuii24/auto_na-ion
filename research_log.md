@@ -295,3 +295,12 @@ Raw experiment artifacts remain unchanged for reproducibility.
   total stays ~135 KB (`-c low`, Δ MAPE +0.00006…+0.00022, PASS) or ~129 KB (`-c medium`, Δ up to +0.008, FAIL) —
   neither fits the 64 KB internal flash of the H7S3L8. Weights must go to the external XSPI2 flash, unless a
   static INT8 (QDQ) export of E/H (C part stays fp32) keeps accuracy.
+- Step B3 (host, 2026-11-13): static INT8 QDQ (onnxruntime quantize_static, per-channel symmetric int8 weights,
+  asymmetric int8 activations, MinMax calibration on TRAIN cells only: 12 cycles + 12 prefixes per cell), C part fp32,
+  ST validate with float32 I/O. Fixes needed for ST: (1) Constant-node weights moved to initializers (else per-tensor
+  asymmetric weights -> "Unsupported integer scheme SASA"); (2) dilated causal Conv rewritten as k shifted copies +
+  1x1 Conv (ST keeps dilated Conv in float); (3) causal pad by zero-concat instead of Pad (ST INT8 codegen emits an
+  empty Pad value). Rewrites are exact (E+H+C vs PyTorch max rel 1.2e-6). All-INT8: 48.6 KB weights, split 42 FAIL
+  (+0.0037). Chosen: state_proj (Gemm_1) kept fp32 -> 57.8 KB weights (E 3.6 + H 54.2), val MAPE 0.076937 / 0.107959
+  / 0.107425 (Δ +0.00026 / +0.00035 / -0.00104), PASS on all splits; ST C chain == onnxruntime. Weights fit 64 KB,
+  but runtime code + C part must still be checked against the 64 KB internal flash (else XSPI2 external flash).
