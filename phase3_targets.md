@@ -87,3 +87,15 @@ Reference course: MIT 6.5940 *TinyML and Efficient AI Computing* (Fall 2026, htt
 2. Toolchain: STM32Cube.AI (X-CUBE-AI) or TFLite Micro + CMSIS-NN?
 3. Is distillation (M5) allowed in Phase 3? `program.md` lists it, but teacher-student was rejected in Phase 2.
 4. Is NAS (M6) in scope, or only pruning + quantization + streaming?
+
+## Physical board for Phase 3 (user, 2026-11-13) — applies to every project (Li-ion, Na-ion, Zn-ion, CALB)
+- The user's real board is **NUCLEO-H7S3L8** (MB1737, user manual UM3276): STM32H7S3L8, Cortex-M7 up to 600 MHz,
+  **only 64 KB internal (boot) flash**, 620 KB SRAM, 32 MB Octo-SPI NOR flash (MX25UW25645G) on XSPI2, memory-mapped at
+  0x70000000; ST-LINK V3 VCP `/dev/cu.usbmodem11302`. It is **not** a NUCLEO-H743ZI2 / MB1364 (earlier notes were wrong).
+- Toolchain: ST Edge AI Core 4.1.0 (`/Applications/ST/STEdgeAI/4.1/Utilities/macarm/stedgeai`, `--target stm32h7`) +
+  STM32Cube AI Studio (validation firmware). X-CUBE-AI is not recommended for new designs.
+- Deployment guide: skill `stm32-deploy` at `/Users/jasmine/DATN/.claude/skills/stm32-deploy/` (SKILL.md + references/).
+  Worked example (v5 Na-ion): `/Users/jasmine/DATN/v5_auto/phase3/board/` (split E + H ONNX + C part; host validation).
+- Constraints learned in v5: ST rejects Conv with batch > 1 and `If`; full-window models need > 2 MB activations;
+  weights + runtime > 64 KB must run from the XSPI2 external flash (external loader, option byte XSPI2_HSLV) or be shrunk.
+- Rule: list the steps and wait for the user's go before every board step; never use the test split on the board.
