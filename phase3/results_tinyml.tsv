@@ -19,7 +19,7 @@ P3	2024	NA-E034	fp16 weights (fp32 compute)	0.108544	0.7650	23.58	+0.000078	76.6
 P3	2024	NA-E034	int8 static mixed (body Conv/Gemm, gate+extrapolation fp32)	0.108469	0.7833	22.87	+0.000003	111.2	PASS (rule d_mape<=+0.001)
 P4-analyze	2021	NA-E032	ST split E (per-cycle encoder, ONNX)		 	 	 	12.1	stedgeai 4.1.0 analyze stm32h7 -O balanced: MACC 298,098; activations 19.1 KB; E+H+C vs PyTorch max rel EOL diff 4.27e-07 on 600 val prefixes
 P4-analyze	2021	NA-E032	ST split H (TCN + head, ONNX)		 	 	 	143.3	stedgeai 4.1.0 analyze stm32h7 -O balanced: MACC 3,554,272; activations 82.8 KB (inputs 26.2 KB in activations)
-P4-analyze	2021	NA-E032	full-window model (100 cycles at once)		 	 	 	156.0	activations 2.19 MB > 1 MB SRAM of H743 -> not deployable; extrapolation/gate part triggers a stedgeai tool error -> moved to C
+P4-analyze	2021	NA-E032	full-window model (100 cycles at once)		 	 	 	156.0	activations 2.19 MB > 620 KB SRAM of the H7S3L8 (and > 1 MB of an H743) -> not deployable; extrapolation/gate part triggers a stedgeai tool error -> moved to C
 P4-host-validate	2021	NA-E032	ST C-model E+H (host, fp32) + C part	0.076678			+0.000000	155.4	stedgeai validate stm32h7 host, 600 val prefixes: E l2r 1.5e-7, H l2r 3.6e-7; val MAPE diff vs PyTorch +1.8e-10
 P4-host-validate	42	NA-E033	ST C-model E+H (host, fp32) + C part	0.107611			+0.000000	155.4	E l2r 1.6e-7, H l2r 2.6e-7; val MAPE diff vs PyTorch +6.3e-10
 P4-host-validate	2024	NA-E034	ST C-model E+H (host, fp32) + C part	0.108466			+0.000000	155.4	E l2r 2.0e-7, H l2r 1.4e-7; val MAPE diff vs PyTorch +5.5e-9

@@ -287,3 +287,7 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Step B (host): `stedgeai validate --target stm32h7` on the generated C-models with all 600 val prefixes per split.
   l2r vs PyTorch: E 1.5–2.0e-7, H 1.4–3.6e-7; val MAPE from the ST C-model + C part = PyTorch exactly
   (0.076678 / 0.107611 / 0.108466; differences ≤ 5.5e-9). Board still untouched.
+- **Correction 2026-11-13 (user):** the physical board is **NUCLEO-H7S3L8** (STM32H7S3, Cortex-M7 600 MHz, 64 KB internal
+  flash, 620 KB SRAM, 32 MB XSPI2 NOR flash), not the H743ZI2 written above. The host results (steps A/A2/B, `--target
+  stm32h7`) still apply (same Cortex-M7 STM32H7 target family); the deployment must put weights (~155 KB fp32) in the
+  external flash or compress them to fit 64 KB.
