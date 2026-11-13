@@ -276,3 +276,11 @@ Raw experiment artifacts remain unchanged for reproducibility.
   improves on the same architecture without it on every split (0.1910 -> 0.1751). INT8 weight-only costs +0.0007.
 - Hardest test cells: the long-life cell 1-3-62 (EOL 268, MAPE 0.28-0.41 on all models) and short-life cells on split 2021.
 - TEST SPLIT FULLY USED. No further test evaluations.
+
+## Phase 3 on board (NUCLEO-H743ZI2), step A/A2 — host only (2026-11-13)
+- ST Edge AI Core 4.1.0 rejects Conv with batch > 1 and has no `If`; the full-window model also needs 2.19 MB activations
+  (> 1 MB SRAM) and its masked line-fit/gate part triggers a tool error.
+- Deployment split: E (per-cycle CNN encoder, 12.1 KB weights, 19.1 KB activations, 0.30 M MACC) + H (state projection, causal
+  TCN, masked mean/last via one-hot, head; 143.3 KB weights, 82.8 KB activations, 3.55 M MACC) + C code (capacity ratios,
+  cycle-1 anchor, masked line fit, gate MLP 4-16-1, mixing). E+H+C reproduces the frozen PyTorch model on all 600 val
+  prefixes of split 2021 (max rel EOL diff 4.27e-07). Board not touched yet.
