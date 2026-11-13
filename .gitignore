@@ -77,3 +77,4 @@ phase3/board/out_*/
 phase3/board/fw/naion_data.c
 phase3/board/fw/ws_*/
 phase3/board/fw/net_*/
+phase3/board/fw/proj/
