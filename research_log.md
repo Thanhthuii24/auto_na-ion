@@ -312,3 +312,7 @@ Raw experiment artifacts remain unchanged for reproducibility.
   Largest layer: state_proj Dense in fp32 (9.2 ms, 17 %). Memory: app flash 160.9 KB (ext), RAM 99.8 KB + DTCM 11.3 KB.
   macOS tool fix: AI Studio calls CMake.app/Contents/MacOS/cmake, which on a case-insensitive disk opens the CMake GUI;
   fixed by renaming MacOS/CMake -> CMake-gui.bin and linking MacOS/cmake -> ../bin/cmake (needs App Management permission).
+- Step E2 (board): E INT8 on target (run 7, 10 val cycles): max |diff| 3.0e-7 vs host reference; 3.33 ms per new
+  cycle (2.0 M cycles, 6.40 cycles/MACC). H rerun (run 5): 51.25 ms per 100-cycle window, bit-exact. AI Studio kept
+  validation_nb_samples=10 although 60 was requested; CLI target validation fails with E200 (C-model signature:
+  activations 26068 vs 20100, AI Studio memory-pool layout differs) — 60-sample runs still pending.

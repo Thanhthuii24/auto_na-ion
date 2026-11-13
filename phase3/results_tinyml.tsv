@@ -36,3 +36,5 @@ P4-host-validate	2021	NA-E032	ST static INT8 QDQ, state_proj fp32 (EXCL=Gemm_1) 
 P4-host-validate	42	NA-E033	ST static INT8 QDQ, state_proj fp32 (EXCL=Gemm_1) E+H + C fp32	0.107959			+0.000348	57.8	PASS
 P4-host-validate	2024	NA-E034	ST static INT8 QDQ, state_proj fp32 (EXCL=Gemm_1) E+H + C fp32	0.107425			-0.001041	57.8	PASS (chosen B3 variant)
 P4-board-validate	2021	NA-E032	H INT8 (state_proj fp32) on NUCLEO-H7S3L8 @600MHz, I/D-cache, weights+app in XSPI2 ext flash; 10 val samples				0 (bit-exact vs host ref, max|diff| 5.8e-8)	54.2	52.96 ms/inference (52.19-54.02), 31.78 M cycles, 8.74 cycles/MACC, 3.63 M MACC; app flash 160.9 KB (ext) + boot 19.9 KB (int); RAM 99.8 KB + DTCM 11.3 KB; state_proj fp32 Dense = 9.2 ms (17%)
+P4-board-validate	2021	NA-E032	E INT8 (per-cycle CNN encoder) on NUCLEO-H7S3L8 @600MHz, I/D-cache, XSPI2; 10 val cycles				0 (max|diff| 3.0e-7 vs host ref, l2r 1.9e-7)	3.6	3.331 ms/cycle (3.044-5.586), 2.00 M cycles, 6.40 cycles/MACC, 0.31 M MACC; app flash 56.6 KB (ext) + boot 19.9 KB; DTCM 36.3 KB + RAM 4.1 KB
+P4-board-validate	2021	NA-E032	H INT8 rerun (run 5), 10 val samples				0	54.2	51.25 ms (50.39-52.34)
