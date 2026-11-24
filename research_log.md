@@ -277,7 +277,7 @@ Raw experiment artifacts remain unchanged for reproducibility.
 - Hardest test cells: the long-life cell 1-3-62 (EOL 268, MAPE 0.28-0.41 on all models) and short-life cells on split 2021.
 - TEST SPLIT FULLY USED. No further test evaluations.
 
-## Phase 3 on board (NUCLEO-H743ZI2), step A/A2 — host only (2026-11-13)
+## Phase 3 on board (NUCLEO-H7S3L8), step A/A2 — host only (2026-11-13)
 - ST Edge AI Core 4.1.0 rejects Conv with batch > 1 and has no `If`; the full-window model also needs 2.19 MB activations
   (> 1 MB SRAM) and its masked line-fit/gate part triggers a tool error.
 - Deployment split: E (per-cycle CNN encoder, 12.1 KB weights, 19.1 KB activations, 0.30 M MACC) + H (state projection, causal

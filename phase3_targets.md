@@ -71,7 +71,7 @@ Reference course: MIT 6.5940 *TinyML and Efficient AI Computing* (Fall 2026, htt
 
 | Item | Proposal |
 |---|---|
-| Primary target | NUCLEO-H743ZI2. It has enough flash and RAM for INT8, and an M7 with a DSP extension (CMSIS-NN / X-CUBE-AI). |
+| Primary target | NUCLEO-H7S3L8 (physical board: 64 KB internal flash + 32 MB XSPI2 NOR, 620 KB SRAM, Cortex-M7 600 MHz). |
 | Accelerated target | NUCLEO-N657X0-Q (NPU), for latency and energy comparison. |
 | Stretch target | NUCLEO-L4R5ZI or L496ZG, to show the model runs on the smallest board (needs streaming). |
 | Weights | ≤ 256 KB flash (INT8) |

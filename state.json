@@ -11,7 +11,7 @@
   "approval_scope": "Standing authorization for the ordinary proposal, diagnostic, smoke, training, review, commit, and push loop inside this repository. Phase 1 may change architecture only under fixed Relative Huber. Final-test access, destructive resets, dataset changes, and protocol changes remain separately gated.",
   "current_experiment": null,
   "next_experiment_id": "NA-E035",
-  "next_action": "Report test results; Phase 3 on-board measurement deferred (no board/Cube.AI).",
+  "next_action": "Phase 3 on-board done on NUCLEO-H7S3L8 (3 splits, MAPE 0.0974); write report.",
   "active_architecture_parent": {
     "experiment": "NA-E032",
     "model": "NaFadeNet+ExtrapGate(s=50) + N1 fixed-b degradation-law loss (rho 1.0)",
